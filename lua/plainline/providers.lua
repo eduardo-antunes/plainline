@@ -53,21 +53,41 @@ function this.branch()
     return string.format('git-%s', branch:gsub('%s+', ''))
 end
 
-function this.harpoon_filepath()
+function this.harpoon()
     local fname = vim.fn.expand('%')
     local harpoon_id = require('harpoon.mark').get_index_of(fname)
+    return harpoon_id
+end
 
+function this.harpoon_filepath()
+    local text = ''
+    local fname = vim.fn.expand('%')
+    local harpoon_id = require('harpoon.mark').get_index_of(fname)
     if harpoon_id ~= nil then
-        return string.format('(%s) %%f', harpoon_id)
+        text = string.format('(%s) ', harpoon_id)
     end
-    return '%f'
+    text = string.format('%s%s', text, fname)
+    local status = this.evil_filestatus()
+    if status ~= nil then
+        text = string.format('%s %s', text, status)
+    end
+    return text
+end
+
+function this.evil_filestatus()
+    if not vim.bo.modifiable or vim.bo.readonly then
+        return '#'
+    elseif vim.bo.modified then
+        return '*'
+    end
+    return nil
 end
 
 function this.filestatus()
     if not vim.bo.modifiable or vim.bo.readonly then
-        return '[-]'
+        return '-'
     elseif vim.bo.modified then
-        return '[+]'
+        return '+'
     end
     return nil
 end
@@ -82,7 +102,7 @@ local lsp_lookup = {
 function this.lsp()
     local count = {}
     for name, tbl in pairs(lsp_lookup) do
-        local diagnostics = vim.diagnostic.get(0, {severity = tbl.level })
+        local diagnostics = vim.diagnostic.get(0, { severity = tbl.level })
         count[name] = vim.tbl_count(diagnostics)
     end
 

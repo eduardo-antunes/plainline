@@ -14,14 +14,12 @@
    limitations under the License. 
 ]]--
 
--- Main file for plainline
-
 local this = {}
 
 local default_config = {
     sections = {
-        left  = { 'evil_mode', 'branch', 'harpoon_filepath', 'filestatus' },
-        right = { 'filetype', 'percentage', 'position'},
+        left  = { 'evil_mode', 'branch', 'harpoon_filepath', 'lsp' },
+        right = { 'filetype', 'percentage', 'position' },
     },
     inactive_sections = {
         left  = { 'full_filepath' },
@@ -30,72 +28,27 @@ local default_config = {
     separator = ' | ',
 }
 
-local function setup_statusline()
-    local plainline_gr = vim.api.nvim_create_augroup('plainline', { clear = true })
-    vim.api.nvim_create_autocmd({ 'WinEnter', 'BufEnter' }, {
-            command = [[setlocal statusline=%!v:lua.require'plainline'.active()]],
-            group = plainline_gr,
-        })
-    vim.api.nvim_create_autocmd({ 'WinLeave', 'BufLeave' }, {
-            command = [[setlocal statusline=%!v:lua.require'plainline'.inactive()]],
-            group = plainline_gr,
-        })
-end
-
-local function generate_providers(spec)
-    local pr = require('plainline.providers')
-    local result = { left = {}, right = {} }
-    for part, providers in pairs(spec) do
-        for _, provider_id in ipairs(providers) do
-            local prov = pr[provider_id]
-            if prov ~= nil then
-                table.insert(result[part], prov)
-            end
-        end
-    end
-    return result
-end
-
-local function generate_statusline(part_providers, sep)
-    local status = { left = '', right = '' }
-    for part, providers in pairs(part_providers) do
-        local first = true
-        for _, prov in ipairs(providers) do
-            local info = prov()
-            if info ~= nil then
-                if first then
-                    status[part] = string.format('%s%s', status[part], info)
-                    first = false
-                else
-                    status[part] = string.format('%s%s%s', status[part], sep, info)
-                end
-            end
-        end
-    end
-    return string.format(' %s%%=%s ', status.left, status.right)
-end
-
 function this.setup(config)
-    -- If something is not in the config, we look it up in the default config
+    local lib = require('plainline.utils')
+    -- If something is not in the config, it is looked up in the default config
     if not config then config = default_config
     else setmetatable(config, { __index = default_config }) end
-    
-    -- Determine which providers are going to be used
-    local active_providers = generate_providers(config.sections)
-    local inactive_providers = generate_providers(config.inactive_sections)
 
-    -- Define statusline generating functions based on those providers
+    -- Process the config to determine what must be in the statusline
+    local apr = lib.generate_provider_table(config.sections)
+    local ipr = lib.generate_provider_table(config.inactive_sections)
 
+    -- Define the functions responsible for generating the statusline in its
+    -- two states: active and inactive
     this.active = function() 
-        return generate_statusline(active_providers, config.separator) 
+        return lib.generate_statusline(apr, config.separator) 
     end
-
     this.inactive = function() 
-        return generate_statusline(inactive_providers, config.separator) 
+        return lib.generate_statusline(ipr, config.separator) 
     end
-
-    -- Sets up the appropriate autocommands
-    setup_statusline()
+    -- Enable the statusline; this uses plainline.active and plainline.inactive
+    -- under the hood
+    lib.enable_plainline()
 end
 
 return this
