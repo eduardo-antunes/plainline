@@ -11,7 +11,7 @@
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License. 
+   limitations under the License.
 ]]--
 
 -- Default plainline providers
@@ -23,18 +23,18 @@ local evil_mode_lookup = {
     ['no'] = 'N' ,
     ['nt'] = 'N' ,
     ['v' ] = 'V' ,
-    ['V' ] = 'Vl',
-    [''] = 'Vb',
+    ['V' ] = 'VL',
+    [''] = 'VB',
     ['s' ] = 'S' ,
-    ['S' ] = 'Sl',
-    [''] = 'Sb',
+    ['S' ] = 'SL',
+    [''] = 'SB',
     ['i' ] = 'I' ,
     ['ic'] = 'I' ,
     ['R' ] = 'R' ,
     ['Rv'] = 'Vr',
     ['c' ] = 'C' ,
-    ['cv'] = 'Ex',
-    ['ce'] = 'Ex',
+    ['cv'] = 'EX',
+    ['ce'] = 'EX',
     ['r' ] = 'P' ,
     ['rm'] = 'M' ,
     ['r?'] = '?' ,
@@ -135,13 +135,28 @@ function this.full_filepath()
     return '%F'
 end
 
+function this.harpoon_full_filepath()
+    local text = ''
+    local fname = vim.fn.expand('%')
+    local harpoon_id = require('harpoon.mark').get_index_of(fname)
+    if harpoon_id ~= nil then
+        text = string.format('(%s) %%F', harpoon_id)
+        return text
+    end
+    return '%F'
+end
+
 function this.filetype()
-    return vim.bo.filetype
+    return vim.bo.filetype:upper()
+end
+
+function this.fileformat()
+    return vim.bo.fileformat
 end
 
 function this.percentage()
     if vim.bo.filetype == 'alpha' then return nil end
-    return '%P'
+    return '%p%%'
 end
 
 function this.position()

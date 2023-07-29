@@ -11,18 +11,18 @@
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License. 
+   limitations under the License.
 ]]--
 
 local this = {}
 
 local default_config = {
     sections = {
-        left  = { 'evil_mode', 'branch', 'harpoon_filepath', 'lsp' },
-        right = { 'filetype', 'percentage', 'position' },
+        left  = { 'evil_mode', 'branch', 'harpoon_filepath', 'lsp'   },
+        right = { 'filetype', 'fileformat', 'percentage', 'position' },
     },
     inactive_sections = {
-        left  = { 'full_filepath' },
+        left  = { 'harpoon_full_filepath' },
         right = {},
     },
     separator = ' | ',
@@ -40,11 +40,11 @@ function this.setup(config)
 
     -- Define the functions responsible for generating the statusline in its
     -- two states: active and inactive
-    this.active = function() 
-        return lib.generate_statusline(apr, config.separator) 
+    this.active = function()
+        return lib.generate_statusline(apr, config.separator)
     end
-    this.inactive = function() 
-        return lib.generate_statusline(ipr, config.separator) 
+    this.inactive = function()
+        return lib.generate_statusline(ipr, config.separator)
     end
     -- Enable the statusline; this uses plainline.active and plainline.inactive
     -- under the hood
