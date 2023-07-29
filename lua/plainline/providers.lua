@@ -18,6 +18,13 @@
 
 local this = {}
 
+-- Require a module if it exists only
+local function try_require(name)
+    local exists, lib = pcall(require, name)
+    if exists then return lib end
+    return nil
+end
+
 local evil_mode_lookup = {
     ['n' ] = 'N' ,
     ['no'] = 'N' ,
@@ -55,14 +62,18 @@ end
 
 function this.harpoon()
     local fname = vim.fn.expand('%')
-    local harpoon_id = require('harpoon.mark').get_index_of(fname)
-    return harpoon_id
+    local mark = try_require('harpoon.mark')
+    if mark ~= nil then
+        local harpoon_id = mark.get_index_of(fname)
+        return harpoon_id
+    end
+    return nil
 end
 
 function this.harpoon_filepath()
     local text = ''
     local fname = vim.fn.expand('%')
-    local harpoon_id = require('harpoon.mark').get_index_of(fname)
+    local harpoon_id = this.harpoon()
     if harpoon_id ~= nil then
         text = string.format('(%s) ', harpoon_id)
     end
@@ -138,7 +149,7 @@ end
 function this.harpoon_full_filepath()
     local text = ''
     local fname = vim.fn.expand('%')
-    local harpoon_id = require('harpoon.mark').get_index_of(fname)
+    local harpoon_id = this.harpoon()
     if harpoon_id ~= nil then
         text = string.format('(%s) %%F', harpoon_id)
         return text
