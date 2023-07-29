@@ -26,43 +26,43 @@ local function try_require(name)
 end
 
 local evil_mode_lookup = {
-    ['n' ] = 'N' ,
-    ['no'] = 'N' ,
-    ['nt'] = 'N' ,
-    ['v' ] = 'V' ,
-    ['V' ] = 'VL',
-    [''] = 'VB',
-    ['s' ] = 'S' ,
-    ['S' ] = 'SL',
-    [''] = 'SB',
-    ['i' ] = 'I' ,
-    ['ic'] = 'I' ,
-    ['R' ] = 'R' ,
-    ['Rv'] = 'Vr',
-    ['c' ] = 'C' ,
-    ['cv'] = 'EX',
-    ['ce'] = 'EX',
-    ['r' ] = 'P' ,
-    ['rm'] = 'M' ,
-    ['r?'] = '?' ,
-    ['!' ] = '$' ,
-    ['t' ] = 'T' ,
+    ["n" ] = "N" ,
+    ["no"] = "N" ,
+    ["nt"] = "N" ,
+    ["v" ] = "V" ,
+    ["V" ] = "VL",
+    [""] = "VB",
+    ["s" ] = "S" ,
+    ["S" ] = "SL",
+    [""] = "SB",
+    ["i" ] = "I" ,
+    ["ic"] = "I" ,
+    ["R" ] = "R" ,
+    ["Rv"] = "Vr",
+    ["c" ] = "C" ,
+    ["cv"] = "EX",
+    ["ce"] = "EX",
+    ["r" ] = "P" ,
+    ["rm"] = "M" ,
+    ["r?"] = "?" ,
+    ["!" ] = "$" ,
+    ["t" ] = "T" ,
 }
 
 function this.evil_mode()
     local current = vim.api.nvim_get_mode().mode
-    return string.format('<%s>', evil_mode_lookup[current])
+    return string.format("<%s>", evil_mode_lookup[current])
 end
 
 function this.branch()
-    local branch = vim.fn.system { 'git', 'symbolic-ref', '--short', 'HEAD' }
-    if branch:find('^fatal:.*$') then return nil end
-    return string.format('git-%s', branch:gsub('%s+', ''))
+    local branch = vim.fn.system { "git", "symbolic-ref", "--short", "HEAD" }
+    if branch:find("^fatal:.*$") then return nil end
+    return string.format("git-%s", branch:gsub("%s+", ""))
 end
 
 function this.harpoon()
-    local fname = vim.fn.expand('%')
-    local mark = try_require('harpoon.mark')
+    local fname = vim.fn.expand("%")
+    local mark = try_require("harpoon.mark")
     if mark ~= nil then
         local harpoon_id = mark.get_index_of(fname)
         return harpoon_id
@@ -71,43 +71,43 @@ function this.harpoon()
 end
 
 function this.harpoon_filepath()
-    local text = ''
-    local fname = vim.fn.expand('%')
+    local text = ""
+    local fname = vim.fn.expand("%")
     local harpoon_id = this.harpoon()
     if harpoon_id ~= nil then
-        text = string.format('(%s) ', harpoon_id)
+        text = string.format("(%s) ", harpoon_id)
     end
-    text = string.format('%s%s', text, fname)
+    text = string.format("%s%s", text, fname)
     local status = this.evil_filestatus()
     if status ~= nil then
-        text = string.format('%s %s', text, status)
+        text = string.format("%s %s", text, status)
     end
     return text
 end
 
 function this.evil_filestatus()
     if not vim.bo.modifiable or vim.bo.readonly then
-        return '#'
+        return "#"
     elseif vim.bo.modified then
-        return '*'
+        return "*"
     end
     return nil
 end
 
 function this.filestatus()
     if not vim.bo.modifiable or vim.bo.readonly then
-        return '-'
+        return "-"
     elseif vim.bo.modified then
-        return '+'
+        return "+"
     end
     return nil
 end
 
 local lsp_lookup = {
-    errors   = { sym = 'E', level = 'Error' },
-    warnings = { sym = 'W', level = 'Warn'  },
-    hints    = { sym = 'H', level = 'Hint'  },
-    info     = { sym = 'I', level = 'Info'  },
+    errors   = { sym = "E", level = "Error" },
+    warnings = { sym = "W", level = "Warn"  },
+    hints    = { sym = "H", level = "Hint"  },
+    info     = { sym = "I", level = "Info"  },
 }
 
 function this.lsp()
@@ -117,44 +117,44 @@ function this.lsp()
         count[name] = vim.tbl_count(diagnostics)
     end
 
-    local out = ''
+    local out = ""
     local prev = false
     if count.errors > 0 then
-        out = string.format('%s%s:%s', out, lsp_lookup.errors.sym, count.errors)
+        out = string.format("%s%s:%s", out, lsp_lookup.errors.sym, count.errors)
         prev = true
     end
     if count.warnings > 0 then
-        local ws = prev and ' ' or ''
-        out = string.format('%s%s%s:%s', out, ws, lsp_lookup.warnings.sym, count.warnings)
+        local ws = prev and " " or ""
+        out = string.format("%s%s%s:%s", out, ws, lsp_lookup.warnings.sym, count.warnings)
         prev = true
     end
     if count.hints > 0 then
-        local ws = prev and ' ' or ''
-        out = string.format('%s%s%s:%s', out, ws, lsp_lookup.hints.sym, count.hints)
+        local ws = prev and " " or ""
+        out = string.format("%s%s%s:%s", out, ws, lsp_lookup.hints.sym, count.hints)
         prev = true
     end
     if count.info > 0 then
-        local ws = prev and ' ' or ''
-        out = string.format('%s%s%s:%s', out, ws, lsp_lookup.info.sym, count.info)
+        local ws = prev and " " or ""
+        out = string.format("%s%s%s:%s", out, ws, lsp_lookup.info.sym, count.info)
         prev = true
     end
 
-    return out ~= '' and out or nil
+    return out ~= "" and out or nil
 end
 
 function this.full_filepath()
-    return '%F'
+    return "%F"
 end
 
 function this.harpoon_full_filepath()
-    local text = ''
-    local fname = vim.fn.expand('%')
+    local text = ""
+    local fname = vim.fn.expand("%")
     local harpoon_id = this.harpoon()
     if harpoon_id ~= nil then
-        text = string.format('(%s) %%F', harpoon_id)
+        text = string.format("(%s) %%F", harpoon_id)
         return text
     end
-    return '%F'
+    return "%F"
 end
 
 function this.filetype()
@@ -166,13 +166,13 @@ function this.fileformat()
 end
 
 function this.percentage()
-    if vim.bo.filetype == 'alpha' then return nil end
-    return '%p%%'
+    if vim.bo.filetype == "alpha" then return nil end
+    return "%p%%"
 end
 
 function this.position()
-    if vim.bo.filetype == 'alpha' then return nil end
-    return '%l:%c'
+    if vim.bo.filetype == "alpha" then return nil end
+    return "%l:%c"
 end
 
 return this

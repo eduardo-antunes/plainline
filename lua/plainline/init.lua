@@ -18,18 +18,15 @@ local this = {}
 
 local default_config = {
     sections = {
-        left  = { 'evil_mode', 'branch', 'harpoon_filepath', 'lsp'   },
-        right = { 'filetype', 'fileformat', 'percentage', 'position' },
+        left  = { "evil_mode", "branch", "harpoon_filepath", "lsp"   },
+        right = { "filetype", "fileformat", "percentage", "position" },
     },
-    inactive_sections = {
-        left  = { 'harpoon_full_filepath' },
-        right = {},
-    },
-    separator = ' | ',
+    inactive_sections = { left  = { "harpoon_full_filepath" }, right = {} },
+    separator = " | ",
 }
 
 function this.setup(config)
-    local lib = require('plainline.utils')
+    local lib = require("plainline.utils")
     -- If something is not in the config, it is looked up in the default config
     if not config then config = default_config
     else setmetatable(config, { __index = default_config }) end

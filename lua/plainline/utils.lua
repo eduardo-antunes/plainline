@@ -11,7 +11,7 @@
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License. 
+   limitations under the License.
 ]]--
 
 -- Utility functions for plainline
@@ -22,7 +22,7 @@ local this = {}
 -- this function generates a table with a very similar format, but filled with
 -- the provider functions that correspond to the given ids.
 function this.generate_provider_table(spec)
-   local pr = require('plainline.providers')
+   local pr = require("plainline.providers")
    local provider_tbl = { left = {}, right = {} }
    for part, provider_ids in pairs(spec) do
       for _, provider_id in ipairs(provider_ids) do
@@ -38,35 +38,35 @@ end
 -- This function receives a provider table, calls the functions stored in it
 -- and formats their results them appropiately using the given separator.
 function this.generate_statusline(provider_tbl, sep)
-   local status = { left = '', right = '' }
+   local status = { left = "", right = "" }
    for part, providers in pairs(provider_tbl) do
       local first = true
       for _, prov in ipairs(providers) do
          local info = prov()
-         if info ~= nil and info ~= '' then
+         if info ~= nil and info ~= "" then
             if first then
-               status[part] = string.format('%s%s', status[part], info)
+               status[part] = string.format("%s%s", status[part], info)
                first = false
             else
-               status[part] = string.format('%s%s%s', status[part], sep, info)
+               status[part] = string.format("%s%s%s", status[part], sep, info)
             end
          end
       end
    end
-   return string.format(' %s%%=%s ', status.left, status.right)
+   return string.format(" %s%%=%s ", status.left, status.right)
 end
 
--- This function's sole responsability is setting up the autocommands necessary
+-- This function"s sole responsability is setting up the autocommands necessary
 -- to enable plainline. It expects the functions plainline.active and plainline
 -- .inactive to have been previously defined.
 function this.enable_plainline()
-   local plainline_gr = vim.api.nvim_create_augroup('plainline', { clear = true })
-   vim.api.nvim_create_autocmd({ 'WinEnter', 'BufEnter' }, {
-         command = [[ setlocal statusline=%!v:lua.require'plainline'.active() ]],
+   local plainline_gr = vim.api.nvim_create_augroup("plainline", { clear = true })
+   vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
+         command = [[ setlocal statusline=%!v:lua.require"plainline".active() ]],
          group = plainline_gr,
       })
-   vim.api.nvim_create_autocmd({ 'WinLeave', 'BufLeave' }, {
-         command = [[ setlocal statusline=%!v:lua.require'plainline'.inactive() ]],
+   vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
+         command = [[ setlocal statusline=%!v:lua.require"plainline".inactive() ]],
          group = plainline_gr,
       })
 end
