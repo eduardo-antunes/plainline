@@ -28,7 +28,7 @@ You may configure plainline by providing a table to the `setup` function. This t
 - and `separator` determines the text that is shown between the outputs of providers.
 
 Providers are simply functions that fecth a particular piece information and display it in text form. They are the building blocks of the statusline, and are
-specified by name. You can see the available providers in the [providers.lua](./lua/plainline/providers.lua) file. Both `sections` and `inactive_sections` are
+specified by name. You can see the available providers in the [`providers.lua`](./lua/plainline/providers.lua) file. Both `sections` and `inactive_sections` are
 given as a { left, right } pair, where each one of these is associated with a list of providers.
 
 ### Harpoon integration
