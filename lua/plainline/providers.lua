@@ -147,12 +147,9 @@ function this.full_filepath()
 end
 
 function this.harpoon_full_filepath()
-    local text = ""
-    local fname = vim.fn.expand("%")
     local harpoon_id = this.harpoon()
     if harpoon_id ~= nil then
-        text = string.format("(%s) %%F", harpoon_id)
-        return text
+        return string.format("(%s) %%F", harpoon_id)
     end
     return "%F"
 end

@@ -62,11 +62,11 @@ end
 function this.enable_plainline()
    local plainline_gr = vim.api.nvim_create_augroup("plainline", { clear = true })
    vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
-         command = [[ setlocal statusline=%!v:lua.require'plainline'.active() ]],
+         command = [[ setlocal statusline=%{%v:lua.require'plainline'.active()%} ]],
          group = plainline_gr,
       })
    vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
-         command = [[ setlocal statusline=%!v:lua.require'plainline'.inactive() ]],
+         command = [[ setlocal statusline=%{%v:lua.require'plainline'.inactive()%} ]],
          group = plainline_gr,
       })
 end
