@@ -70,18 +70,22 @@ function this.harpoon()
   return nil
 end
 
-local function prettify_path(path)
+local function mode_filter(path)
   -- Special treatment for fugitive buffers
-  if string.find(path, "^fugitive") then
+  if vim.bo.filetype == "fugitive" then
     path = string.match(path, ".*/(.*)/.git/")
     path = string.format("(fugitive) %s.git", path)
+  -- Special treatment for help buffers
+  elseif vim.bo.filetype == "help" then
+    path = vim.fn.fnamemodify(path, ":t")
+    path = string.format("(help) %s", path)
   end
   return path
 end
 
 function this.filepath()
-  local path = vim.fn.expand "%"
-  return prettify_path(path)
+  local path = vim.fn.expand "%:."
+  return mode_filter(path)
 end
 
 function this.harpoon_filepath()
@@ -158,7 +162,7 @@ end
 
 function this.full_filepath()
   local path = vim.fn.expand "%F"
-  return prettify_path(path)
+  return mode_filter(path)
 end
 
 function this.harpoon_full_filepath()
