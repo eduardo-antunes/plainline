@@ -36,7 +36,7 @@ function this.generate_provider_table(spec)
 end
 
 -- This function receives a provider table, calls the functions stored in it
--- and formats their results them appropiately using the given separator.
+-- and formats their results appropriately using the given separator.
 function this.generate_statusline(provider_tbl, sep)
   local status = { left = "", right = "" }
   for part, providers in pairs(provider_tbl) do
@@ -56,7 +56,7 @@ function this.generate_statusline(provider_tbl, sep)
   return string.format(" %s%%=%s ", status.left, status.right)
 end
 
--- This function"s sole responsability is setting up the autocommands necessary
+-- This function's sole responsability is setting up the autocommands necessary
 -- to enable plainline. It expects the functions plainline.active and plainline
 -- .inactive to have been previously defined.
 function this.enable_plainline()

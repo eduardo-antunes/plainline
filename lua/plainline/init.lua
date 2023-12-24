@@ -43,6 +43,8 @@ end
 function this.setup(config)
   local lib = require("plainline.utils")
   config = setup_config(config)
+  -- Make the mode_filter setting globally available
+  this.mode_filter = config.mode_filter
 
   -- Process the config to determine what must be in the statusline
   local apr = lib.generate_provider_table(config.sections)

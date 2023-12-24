@@ -27,6 +27,11 @@ end
 
 -- Mode filter, to clean up the names of special buffers
 local function mode_filter(path)
+  -- If the mode filter has been disabled, do nothing
+  if not require("plainline").mode_filter then
+    return path
+  end
+
   -- Fugitive buffers
   if vim.bo.filetype == "fugitive" then
     path = string.match(path, ".*/(.*)/.git/")
