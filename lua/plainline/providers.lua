@@ -25,6 +25,37 @@ local function try_require(name)
   return nil
 end
 
+-- Mode filter, to clean up the names of special buffers
+local function mode_filter(path)
+  -- Fugitive buffers
+  if vim.bo.filetype == "fugitive" then
+    path = string.match(path, ".*/(.*)/.git/")
+    path = string.format("[fugitive] %s.git", path)
+
+  -- Fugitive diff buffers
+  elseif string.find(path, "^fugitive://") ~= nil then
+    local id, name = string.match(path, "fugitive://.*.git//([0-9]+)/(.*)")
+    path = string.format("[diff] %s %d", name, id)
+
+  -- Oil.nvim buffers
+  elseif vim.bo.filetype == "oil" then
+    path = string.match(path, "oil://(.*)")
+    path = string.gsub(path, "/home/.-/", "~/")
+
+  -- Help buffers
+  elseif vim.bo.filetype == "help" then
+    path = vim.fn.fnamemodify(path, ":t")
+    path = string.format("[help] %s", path)
+
+  -- Man buffers
+  elseif vim.bo.filetype == "man" then
+    path = vim.fn.fnamemodify(path, ":t")
+    path = string.format("[man] %s", path)
+  end
+
+  return path
+end
+
 local evil_mode_lookup = {
   ["n" ] = "N"  ,
   ["no"] = "N"  ,
@@ -48,6 +79,9 @@ local evil_mode_lookup = {
   ["!" ] = "$"  ,
   ["t" ] = "T"  ,
 }
+setmetatable(evil_mode_lookup, { __index = function ()
+  return "?!" -- modo desconhecido, não deveria acontecer
+end})
 
 function this.evil_mode()
   local current = vim.api.nvim_get_mode().mode
@@ -68,19 +102,6 @@ function this.harpoon()
     return harpoon_id
   end
   return nil
-end
-
-local function mode_filter(path)
-  -- Special treatment for fugitive buffers
-  if vim.bo.filetype == "fugitive" then
-    path = string.match(path, ".*/(.*)/.git/")
-    path = string.format("(fugitive) %s.git", path)
-  -- Special treatment for help buffers
-  elseif vim.bo.filetype == "help" then
-    path = vim.fn.fnamemodify(path, ":t")
-    path = string.format("(help) %s", path)
-  end
-  return path
 end
 
 function this.filepath()

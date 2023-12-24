@@ -22,30 +22,43 @@ local default_config = {
     right = { "filetype", "fileformat", "percentage", "position" },
   },
   inactive_sections = { left  = { "harpoon_full_filepath" }, right = {} },
+  mode_filter = true,
   separator = " | ",
 }
 
+local function setup_config(config)
+  -- Merge provided config with the defaults
+  vim.validate { config = { config, "table", true } }
+  config = vim.tbl_deep_extend("force", default_config, config or {})
+  -- Validation of the config
+  vim.validate {
+    sections = { config.sections, "table" },
+    inactive_sections = { config.inactive_sections, "table" },
+    mode_filter = { config.mode_filter, "boolean" },
+    separator = { config.separator, "string" },
+  }
+  return config
+end
+
 function this.setup(config)
   local lib = require("plainline.utils")
-  -- If something is not in the config, it is looked up in the default config
-  if not config then config = default_config
-else setmetatable(config, { __index = default_config }) end
+  config = setup_config(config)
 
--- Process the config to determine what must be in the statusline
-local apr = lib.generate_provider_table(config.sections)
-local ipr = lib.generate_provider_table(config.inactive_sections)
+  -- Process the config to determine what must be in the statusline
+  local apr = lib.generate_provider_table(config.sections)
+  local ipr = lib.generate_provider_table(config.inactive_sections)
 
--- Define the functions responsible for generating the statusline in its
--- two states: active and inactive
-this.active = function()
-  return lib.generate_statusline(apr, config.separator)
-end
-this.inactive = function()
-  return lib.generate_statusline(ipr, config.separator)
-end
--- Enable the statusline; this uses plainline.active and plainline.inactive
--- under the hood
-lib.enable_plainline()
+  -- Define the functions responsible for generating the statusline in its
+  -- two states: active and inactive
+  this.active = function()
+    return lib.generate_statusline(apr, config.separator)
+  end
+  this.inactive = function()
+    return lib.generate_statusline(ipr, config.separator)
+  end
+  -- Enable the statusline; this uses plainline.active and plainline.inactive
+  -- under the hood
+  lib.enable_plainline()
 end
 
 return this
