@@ -215,6 +215,11 @@ end
 
 function this.position()
   if vim.bo.filetype == "alpha" then return nil end
+  return "%l:%v"
+end
+
+function this.position_bytes()
+  if vim.bo.filetype == "alpha" then return nil end
   return "%l:%c"
 end
 
