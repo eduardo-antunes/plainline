@@ -30,12 +30,12 @@ You may configure plainline by providing a table to the `setup` function. This t
 
 Providers are simply functions that fetch a particular piece information and display it in text form. They are the building blocks of the statusline. The buitin providers,
 which are all defined in [`providers.lua`](./lua/plainline/providers.lua), can be specified by name. You can also pass your own functions as providers, as long as those
-functions return strings (or nil). Both `sections` and `inactive_sections` are specified as { left, right } pairs, where left and right are lists of providers.
+functions return strings (or nil).
 
 Provider options are a set of boolean options that control the aspects of the behavior of groups of providers. Currently, the following options are available:
 
 - `name_filter` enables or disables the name filter. It's on by default;
-- `trad_status` changes the plainline-style status indicators ('*' for modified buffers and '#' for read-only ones) for the traditional vim status indicators (namely, '[+]' and '[-]'). It's off by default.
+- `trad_status` changes the plainline-style status indicators (`*` for modified buffers and `#` for read-only ones) for the traditional vim status indicators (namely, `[+]` and `[-]`). It's off by default.
 
 ### Name filter
 
