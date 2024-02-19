@@ -1,5 +1,5 @@
 --[[
-   Copyright 2023 Eduardo Antunes dos Santos Vieira
+   Copyright 2023-2024 Eduardo Antunes dos Santos Vieira
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,213 +14,226 @@
    limitations under the License.
 ]]--
 
--- Default plainline providers
+-- The name filter (previously mode filter) is used to clean up the names of
+-- buffers closely associated to some special plugin or vim functionality, as
+-- the names of such buffers tend to have quite a bit of noise
+local function name_filter(name)
+  -- If this feature has been disabled by the user, do nothing
+  if not require("plainline").opts.name_filter then
+    return name
+  end
+  -- Remove protocol-style prefixes (they are mostly useless)
+  name = name:gsub("^.*://(.*)$", "%1")
+  -- Abbreviate the home directory to just '~'
+  name = name:gsub(vim.fn.getenv("HOME"), "~")
+
+  -- Filetype-based noise removal
+  if vim.bo.filetype == "help" or vim.bo.filetype == "man" then
+    -- I don't care about the path of help pages, just the topic
+    name = vim.fn.fnamemodify(name, ":t")
+  elseif vim.bo.filetype == "fugitive" then
+    -- For fugitive: show just the name of the repository
+    name = name:gsub("^.*/(.*)/%.git.*$", "%1.git")
+  end
+  return name
+end
+
+-- Lookup table for mode indentifiers
+local mode_id = {
+  ["n" ] = "N"  , ["no"] = "N"  , ["nt"] = "N"  ,
+  ["v" ] = "V"  , ["V" ] = "VL" , [""] = "VB" ,
+  ["s" ] = "S"  , ["S" ] = "SL" , [""] = "SB" ,
+  ["i" ] = "I"  , ["ic"] = "I"  , ["R" ] = "R"  ,
+  ["Rv"] = "Vr" , ["c" ] = "C"  , ["cv"] = "EX" ,
+  ["ce"] = "EX" , ["r" ] = "P"  , ["rm"] = "M"  ,
+  ["r?"] = "?"  , ["!" ] = "$"  , ["t" ] = "T"  ,
+}
+setmetatable(mode_id, { __index = function ()
+  return "?!" -- unknow modes (should not happen)
+end})
 
 local this = {}
 
--- Require a module if it exists only
-local function try_require(name)
-  local exists, lib = pcall(require, name)
-  if exists then return lib end
-  return nil
-end
-
--- Mode filter, to clean up the names of special buffers
-local function mode_filter(path)
-  -- If the mode filter has been disabled, do nothing
-  if not require("plainline").mode_filter then
-    return path
-  end
-
-  -- Fugitive buffers
-  if vim.bo.filetype == "fugitive" then
-    path = string.match(path, ".*/(.*)/.git/")
-    path = string.format("[fugitive] %s.git", path)
-
-  -- Fugitive diff buffers
-  elseif string.find(path, "^fugitive://") ~= nil then
-    local id, name = string.match(path, "fugitive://.*.git//([0-9]+)/(.*)")
-    path = string.format("[diff] %s %d", name, id)
-
-  -- Oil.nvim buffers
-  elseif vim.bo.filetype == "oil" then
-    path = string.match(path, "oil://(.*)")
-    path = string.gsub(path, "/home/.-/", "~/")
-
-  -- Help buffers
-  elseif vim.bo.filetype == "help" then
-    path = vim.fn.fnamemodify(path, ":t")
-    path = string.format("[help] %s", path)
-
-  -- Man buffers
-  elseif vim.bo.filetype == "man" then
-    path = vim.fn.fnamemodify(path, ":t")
-    path = string.format("[man] %s", path)
-  end
-
-  return path
-end
-
-local evil_mode_lookup = {
-  ["n" ] = "N"  ,
-  ["no"] = "N"  ,
-  ["nt"] = "N"  ,
-  ["v" ] = "V"  ,
-  ["V" ] = "VL" ,
-  [""] = "VB" ,
-  ["s" ] = "S"  ,
-  ["S" ] = "SL" ,
-  [""] = "SB" ,
-  ["i" ] = "I"  ,
-  ["ic"] = "I"  ,
-  ["R" ] = "R"  ,
-  ["Rv"] = "Vr" ,
-  ["c" ] = "C"  ,
-  ["cv"] = "EX" ,
-  ["ce"] = "EX" ,
-  ["r" ] = "P"  ,
-  ["rm"] = "M"  ,
-  ["r?"] = "?"  ,
-  ["!" ] = "$"  ,
-  ["t" ] = "T"  ,
-}
-setmetatable(evil_mode_lookup, { __index = function ()
-  return "?!" -- modo desconhecido, não deveria acontecer
-end})
-
-function this.evil_mode()
+-- Shows the current mode, evil-style (I've used emacs btw)
+function this.mode()
   local current = vim.api.nvim_get_mode().mode
-  return string.format("<%s>", evil_mode_lookup[current])
+  return string.format("<%s>", mode_id[current])
 end
 
+-- Shows the current git branch if in a git repository
 function this.branch()
   local branch = vim.fn.system { "git", "symbolic-ref", "--short", "HEAD" }
   if branch:find("^fatal:.*$") then return nil end
   return string.format("git-%s", branch:gsub("%s+", ""))
 end
 
+-- If harpoon is installed and the current buffer is on its list, gives the
+-- index of the file in that list. Useful if the user's set up index-based
+-- shortcuts for harpoon
 function this.harpoon()
-  local bufname = vim.fn.expand("%")
-  local mark = try_require("harpoon.mark")
-  if mark ~= nil then
-    local harpoon_id = mark.get_index_of(bufname)
-    return harpoon_id
-  end
-  return nil
+  local ok, mark = pcall(require, "harpoon.mark")
+  if not ok then return nil end
+  return mark.get_index_of(vim.fn.expand "%")
 end
 
-function this.filepath()
+-- Shows the name of the current buffer (applies name filter)
+function this.filename()
   local path = vim.fn.expand "%:."
-  return mode_filter(path)
+  return name_filter(path)
 end
 
-function this.harpoon_filepath()
-  local text = ""
-  local path = this.filepath()
+-- Combines the harpoon and filename providers; if their return values are
+-- called h and buf, respectively, then it displays them in the statusline in
+-- the format "(h) name", which I think is more aesthetically pleasing than
+-- using them separately. Also includes the file status
+function this.harpoon_filename()
+  local hfname = this.filename()
   local harpoon_id = this.harpoon()
   if harpoon_id ~= nil then
-    text = string.format("(%s) ", harpoon_id)
+    hfname = string.format("(%s) %s", harpoon_id, hfname)
   end
-  text = string.format("%s%s", text, path)
-  local status = this.evil_filestatus()
+  local status = this.filestatus()
   if status ~= nil then
-    text = string.format("%s %s", text, status)
+    hfname = string.format("%s %s", hfname, status)
   end
-  return text
+  return hfname
 end
 
-function this.evil_filestatus()
-  if not vim.bo.modifiable or vim.bo.readonly then
-    return "#"
-  elseif vim.bo.modified then
-    return "*"
-  end
-  return nil
-end
-
+-- Shows the status of the file; If it's been modified, shows a '*' character;
+-- if it's read-only, shows a '#'; otherwise, does not appear. I realize this
+-- is different from the traditional vim status; if you want that, set the
+-- trad_status provider option in the config
 function this.filestatus()
+  local t = require("plainline").opts.trad_status
   if not vim.bo.modifiable or vim.bo.readonly then
-    return "-"
+    return t and "[-]" or "#"
   elseif vim.bo.modified then
-    return "+"
+    return t and "[+]" or "*"
   end
   return nil
 end
 
-local lsp_lookup = {
-  errors   = { sym = "E", level = "Error" },
-  warnings = { sym = "W", level = "Warn"  },
-  hints    = { sym = "H", level = "Hint"  },
-  info     = { sym = "I", level = "Info"  },
-}
-
+-- Shows the count for each level of diagnostic for the current buffer. Since
+-- most diagnostics will come from lsp, that's used as its name
 function this.lsp()
-  local count = {}
-  for name, tbl in pairs(lsp_lookup) do
-    local diagnostics = vim.diagnostic.get(0, { severity = tbl.level })
-    count[name] = vim.tbl_count(diagnostics)
-  end
-
-  local out = ""
+  -- Get the count for each diagnostic level
+  local e = vim.tbl_count(vim.diagnostic.get(0, { severity = "Error" }))
+  local w = vim.tbl_count(vim.diagnostic.get(0, { severity = "Warn"  }))
+  local h = vim.tbl_count(vim.diagnostic.get(0, { severity = "Hint"  }))
+  local i = vim.tbl_count(vim.diagnostic.get(0, { severity = "Info"  }))
+  -- Arrange all counts into a neat little table
+  local counts = {
+    { id = "E", n = e }, { id = "W", n = w },
+    { id = "H", n = h }, { id = "I", n = i },
+  }
+  -- Now iterate over the table to generate the status string, skipping counts
+  -- that are equal to zero because they would just be noise
+  local status = ""
   local prev = false
-  if count.errors > 0 then
-    out = string.format("%s%s:%s", out, lsp_lookup.errors.sym, count.errors)
-    prev = true
+  for _, count in ipairs(counts) do
+    if count.n > 0 then
+      local ws = prev and " " or ""
+      status = string.format("%s%s%s:%d", status, ws, count.id, count.n)
+      prev = true
+    end
   end
-  if count.warnings > 0 then
-    local ws = prev and " " or ""
-    out = string.format("%s%s%s:%s", out, ws, lsp_lookup.warnings.sym, count.warnings)
-    prev = true
-  end
-  if count.hints > 0 then
-    local ws = prev and " " or ""
-    out = string.format("%s%s%s:%s", out, ws, lsp_lookup.hints.sym, count.hints)
-    prev = true
-  end
-  if count.info > 0 then
-    local ws = prev and " " or ""
-    out = string.format("%s%s%s:%s", out, ws, lsp_lookup.info.sym, count.info)
-    prev = true
-  end
-
-  return out ~= "" and out or nil
+  return status
 end
 
-function this.full_filepath()
-  local path = vim.fn.expand "%F"
-  return mode_filter(path)
+-- Shows the full filepath for the buffer (applies name filter)
+function this.fullpath()
+  local path = vim.fn.expand "%:p"
+  return name_filter(path)
 end
 
-function this.harpoon_full_filepath()
-  local path = this.full_filepath()
+-- Analogous to harpoon_filename, but uses the full path of the buffer
+function this.harpoon_fullpath()
+  local hpath = this.fullpath()
   local harpoon_id = this.harpoon()
   if harpoon_id ~= nil then
-    return string.format("(%s) %s", harpoon_id, path)
+    hpath = string.format("(%s) %s", harpoon_id, hpath)
   end
-  return path
+  local status = this.filestatus()
+  if status ~= nil then
+    hpath = string.format("%s %s", hpath, status)
+  end
+  return hpath
 end
 
+-- Shows the filetype for the buffer
 function this.filetype()
   return vim.bo.filetype:upper()
 end
 
+-- Shows the fileformat for the buffer
 function this.fileformat()
   return vim.bo.fileformat
 end
 
+-- Shows the percentage of the buffer that has been scrolled down
 function this.percentage()
   if vim.bo.filetype == "alpha" then return nil end
   return "%p%%"
 end
 
+-- Shows the percentage in the traditional vim fashion
+function this.trad_percentage()
+  if vim.bo.filetype == "alpha" then return nil end
+  return "%P"
+end
+
+-- Shows the position in the buffer, using virtual column count
 function this.position()
   if vim.bo.filetype == "alpha" then return nil end
   return "%l:%v"
 end
 
+-- Shows the position in the buffer, using byte column count
 function this.position_bytes()
   if vim.bo.filetype == "alpha" then return nil end
   return "%l:%c"
 end
+
+-- In the spirit of catering to the emacs bros (very powerful people), I've
+-- taken the liberty to include a series of providers to help emulate
+-- components of the stock emacs modeline, thus taking the emacs inspiration
+-- already present in plainline one step further. I based these on:
+-- https://www.gnu.org/software/emacs/manual/html_node/emacs/Mode-Line.html
+
+-- Shows that weird thing in the beggining of the emacs modeline
+function this.emacs_status()
+  -- Basic file encoding portion (emacs nerds know this is more complicated in
+  -- the real thing, but I want to keep it simple)
+  local enc = vim.bo.binary and "=" or "-"
+  -- Line ending convention portion
+  local ending = ":" -- assumes unix
+  if vim.bo.fileformat == "dos" then
+    ending = "\\"
+  elseif vim.bo.fileformat == "mac" then
+    ending = "/"
+  end
+  -- Buffer status portion
+  local status = "--" -- assume unmodified
+  if not vim.bo.modifiable or vim.bo.readonly then
+    status = "%%%%" -- gotta escape the %s for some reason
+  elseif vim.bo.modified then
+    status = "**"
+  end
+  -- Assemble the thing
+  return string.format("%s%s%s-", enc, ending, status)
+end
+
+-- Shows an emacs-style major/minor mode indicator (with the minions-mode
+-- enabled, to spare the headache of actually trying to show minor modes)
+-- https://github.com/tarsius/minions
+function this.emacs_modes()
+  local major_mode = vim.bo.filetype:gsub("^%l", string.upper)
+  if major_mode == "" then
+    major_mode = "Fundamental" -- for empty buffers such as the initial
+  end
+  return string.format("(%s)", major_mode)
+end
+
+function this.emacs_linenum() return "L%l" end -- line number, emacs-style
 
 return this

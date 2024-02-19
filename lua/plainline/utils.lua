@@ -1,5 +1,5 @@
 --[[
-   Copyright 2023 Eduardo Antunes dos Santos Vieira
+   Copyright 2023-2024 Eduardo Antunes dos Santos Vieira
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,9 +26,15 @@ function this.generate_provider_table(spec)
   local provider_tbl = { left = {}, right = {} }
   for part, provider_ids in pairs(spec) do
     for _, provider_id in ipairs(provider_ids) do
-      local prov = pr[provider_id]
-      if prov ~= nil then
-        table.insert(provider_tbl[part], prov)
+      if type(provider_id) == "function" then
+          -- Allow for custom providers from the user
+          table.insert(provider_tbl[part], provider_id)
+      else
+        -- Pre-defined providers in providers.lua
+        local prov = pr[provider_id]
+        if prov ~= nil then
+          table.insert(provider_tbl[part], prov)
+        end
       end
     end
   end
