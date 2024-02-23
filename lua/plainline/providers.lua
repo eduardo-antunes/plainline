@@ -62,9 +62,10 @@ end
 
 -- Shows the current git branch if in a git repository
 function this.branch()
-  local branch = vim.fn.system { "git", "symbolic-ref", "--short", "HEAD" }
-  if branch:find("^fatal:.*$") then return nil end
-  return string.format("git-%s", branch:gsub("%s+", ""))
+  -- The current approach to this provider is to just use this buffer local
+  -- variable, which is set up to be updated at certain events only. This is
+  -- much better than the previous one, which ran git at every screen update
+  return string.format("git-%s", vim.b.plainline_branch)
 end
 
 -- If harpoon is installed and the current buffer is on its list, gives the
@@ -123,18 +124,18 @@ function this.lsp()
   local i = vim.tbl_count(vim.diagnostic.get(0, { severity = "Info"  }))
   -- Arrange all counts into a neat little table
   local counts = {
-    { id = "E", n = e }, { id = "W", n = w },
-    { id = "H", n = h }, { id = "I", n = i },
+    { sym = "E", n = e }, { sym = "W", n = w },
+    { sym = "H", n = h }, { sym = "I", n = i },
   }
   -- Now iterate over the table to generate the status string, skipping counts
   -- that are equal to zero because they would just be noise
   local status = ""
-  local prev = false
+  local before = false -- was there a non-zero count before?
   for _, count in ipairs(counts) do
     if count.n > 0 then
-      local ws = prev and " " or ""
-      status = string.format("%s%s%s:%d", status, ws, count.id, count.n)
-      prev = true
+      local ws = before and " " or ""
+      status = string.format("%s%s%s:%d", status, ws, count.sym, count.n)
+      before = true
     end
   end
   return status
@@ -223,9 +224,7 @@ function this.emacs_status()
   return string.format("%s%s%s-", enc, ending, status)
 end
 
--- Shows an emacs-style major/minor mode indicator (with the minions-mode
--- enabled, to spare the headache of actually trying to show minor modes)
--- https://github.com/tarsius/minions
+-- Shows an emacs-style major/minor mode indicator
 function this.emacs_modes()
   local major_mode = vim.bo.filetype:gsub("^%l", string.upper)
   if major_mode == "" then
