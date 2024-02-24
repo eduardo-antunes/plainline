@@ -22,9 +22,8 @@ local function name_filter(name)
   if not require("plainline").opts.name_filter then
     return name
   end
-  -- Remove protocol-style prefixes (they are mostly useless)
+  -- Remove protocol-style prefixes and substitute $HOME for '~'
   name = name:gsub("^.*://(.*)$", "%1")
-  -- Abbreviate the home directory to just '~'
   name = name:gsub(vim.fn.getenv("HOME"), "~")
 
   -- Filetype-based noise removal
@@ -65,7 +64,9 @@ function this.branch()
   -- The current approach to this provider is to just use this buffer local
   -- variable, which is set up to be updated at certain events only. This is
   -- much better than the previous one, which ran git at every screen update
-  return string.format("git-%s", vim.b.plainline_branch)
+  if vim.b.plainline_branch then
+    return string.format("git-%s", vim.b.plainline_branch)
+  end
 end
 
 -- If harpoon is installed and the current buffer is on its list, gives the
@@ -77,27 +78,14 @@ function this.harpoon()
   return mark.get_index_of(vim.fn.expand "%")
 end
 
--- Shows the name of the current buffer (applies name filter)
+-- Shows the name of the current buffer, along with its status
 function this.filename()
-  local path = vim.fn.expand "%:."
-  return name_filter(path)
-end
-
--- Combines the harpoon and filename providers; if their return values are
--- called h and buf, respectively, then it displays them in the statusline in
--- the format "(h) name", which I think is more aesthetically pleasing than
--- using them separately. Also includes the file status
-function this.harpoon_filename()
-  local hfname = this.filename()
-  local harpoon_id = this.harpoon()
-  if harpoon_id ~= nil then
-    hfname = string.format("(%s) %s", harpoon_id, hfname)
-  end
   local status = this.filestatus()
-  if status ~= nil then
-    hfname = string.format("%s %s", hfname, status)
+  local filename = name_filter(vim.fn.expand "%:.")
+  if status then
+    filename = string.format("%s %s", filename, status)
   end
-  return hfname
+  return filename
 end
 
 -- Shows the status of the file; If it's been modified, shows a '*' character;
@@ -112,6 +100,17 @@ function this.filestatus()
     return t and "[+]" or "*"
   end
   return nil
+end
+
+-- Combines the harpoon and filename providers, displaying their output in a
+-- format I think is more aesthetically pleasing
+function this.harpoon_filename()
+  local filename = this.filename()
+  local harpoon_id = this.harpoon()
+  if harpoon_id ~= nil then
+    filename = string.format("(%s) %s", harpoon_id, filename)
+  end
+  return filename
 end
 
 -- Shows the count for each level of diagnostic for the current buffer. Since
@@ -133,32 +132,32 @@ function this.lsp()
   local before = false -- was there a non-zero count before?
   for _, count in ipairs(counts) do
     if count.n > 0 then
-      local ws = before and " " or ""
-      status = string.format("%s%s%s:%d", status, ws, count.sym, count.n)
+      local sep = before and " " or ""
+      status = string.format("%s%s%s:%d", status, sep, count.sym, count.n)
       before = true
     end
   end
   return status
 end
 
--- Shows the full filepath for the buffer (applies name filter)
+-- Shows the full filepath for the buffer, along with its status
 function this.fullpath()
-  local path = vim.fn.expand "%:p"
-  return name_filter(path)
+  local status = this.filestatus()
+  local fullpath = name_filter(vim.fn.expand "%:p")
+  if status then
+    fullpath = string.format("%s %s", fullpath, status)
+  end
+  return fullpath
 end
 
 -- Analogous to harpoon_filename, but uses the full path of the buffer
 function this.harpoon_fullpath()
-  local hpath = this.fullpath()
+  local fullpath = this.fullpath()
   local harpoon_id = this.harpoon()
-  if harpoon_id ~= nil then
-    hpath = string.format("(%s) %s", harpoon_id, hpath)
+  if harpoon_id then
+    fullpath = string.format("(%s) %s", harpoon_id, fullpath)
   end
-  local status = this.filestatus()
-  if status ~= nil then
-    hpath = string.format("%s %s", hpath, status)
-  end
-  return hpath
+  return fullpath
 end
 
 -- Shows the filetype for the buffer
@@ -216,7 +215,7 @@ function this.emacs_status()
   -- Buffer status portion
   local status = "--" -- assume unmodified
   if not vim.bo.modifiable or vim.bo.readonly then
-    status = "%%%%" -- gotta escape the %s for some reason
+    status = "%%%%" -- gotta escape the %s
   elseif vim.bo.modified then
     status = "**"
   end
@@ -230,6 +229,7 @@ function this.emacs_modes()
   if major_mode == "" then
     major_mode = "Fundamental" -- for empty buffers such as the initial
   end
+  -- I really don't know what I could shows for the minor modes
   return string.format("(%s)", major_mode)
 end
 

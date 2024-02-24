@@ -24,6 +24,7 @@ local function get_ptable(sections)
     for _, provider in ipairs(providers) do
       local p = provider
       -- p should be either a string (predefined provider) or a function
+      vim.validate { providers = { p, { "string", "function" } } }
       if type(p) == "string" then
         p = predefined[p] -- get predefined provider
       end
@@ -40,8 +41,8 @@ local function make_status(ptable, separator)
   for s, providers in pairs(ptable) do
     local before = false -- was there a provider before?
     for _, provider in ipairs(providers) do
-      local res = provider()
-      if res and res ~= "" then
+      local ok, res = pcall(provider)
+      if ok and res and res ~= "" then
         local sep = before and separator or ""
         status[s] = string.format("%s%s%s", status[s], sep, res)
         before = true
@@ -69,11 +70,11 @@ local this = {}
 -- Enables plainline, using the functions in plainline.core to set up the
 -- appropriate autocommands for the thing to work properly
 function this.enable(config)
-  local sec = get_ptable(config.sections)
-  local ina = get_ptable(config.inactive_sections)
+  local on = get_ptable(config.sections)
+  local off = get_ptable(config.inactive_sections)
   -- Statusline functions for active and inactive states, respectively
-  this.on  = function() return make_status(sec, config.separator) end
-  this.off = function() return make_status(ina, config.separator) end
+  this.on  = function() return make_status(on, config.separator) end
+  this.off = function() return make_status(off, config.separator) end
 
   -- Core autocommands to get plainline running
   local plainline = vim.api.nvim_create_augroup("plainline", {})

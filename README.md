@@ -28,7 +28,7 @@ You may configure plainline by providing a table to the `setup` function. This t
 - `separator` determines the text that is shown between the outputs of providers;
 - and `provide_opts` is a table of provider options.
 
-Providers are simply functions that fetch a particular piece information and display it in text form. They are the building blocks of the statusline. The buitin
+Providers are simply functions that fetch a particular piece of information and display it in text form. They are the building blocks of the statusline. The buitin
 providers, which are all defined in [`providers.lua`](./lua/plainline/providers.lua), can be specified by name. You can also pass your own functions as providers,
 as long as those functions return strings (or nil).
 
