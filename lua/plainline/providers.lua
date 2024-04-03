@@ -14,13 +14,15 @@
    limitations under the License.
 ]]--
 
--- The name filter (previously mode filter) is used to clean up the names of
--- buffers closely associated to some special plugin or vim functionality, as
--- the names of such buffers tend to have quite a bit of noise
+-- Cleans up buffer names (if enabled) before display
 local function name_filter(name)
-  -- If this feature has been disabled by the user, do nothing
   if not require("plainline").opts.name_filter then
+    -- The name filter is disabled
     return name
+  end
+  -- If in a terminal, display just the final part of the "path"
+  if name:match("^term://.*$") then
+    return vim.fn.fnamemodify(name, ":p:t")
   end
   -- Remove protocol-style prefixes and substitute $HOME for '~'
   name = name:gsub("^.*://(.*)$", "%1")
@@ -69,15 +71,6 @@ function this.branch()
   end
 end
 
--- If harpoon is installed and the current buffer is on its list, gives the
--- index of the file in that list. Useful if the user's set up index-based
--- shortcuts for harpoon
-function this.harpoon()
-  local ok, mark = pcall(require, "harpoon.mark")
-  if not ok then return nil end
-  return mark.get_index_of(vim.fn.expand "%")
-end
-
 -- Shows the name of the current buffer, along with its status
 function this.filename()
   local status = this.filestatus()
@@ -100,17 +93,6 @@ function this.filestatus()
     return t and "[+]" or "*"
   end
   return nil
-end
-
--- Combines the harpoon and filename providers, displaying their output in a
--- format I think is more aesthetically pleasing
-function this.harpoon_filename()
-  local filename = this.filename()
-  local harpoon_id = this.harpoon()
-  if harpoon_id ~= nil then
-    filename = string.format("(%s) %s", harpoon_id, filename)
-  end
-  return filename
 end
 
 -- Shows the count for each level of diagnostic for the current buffer. Since
@@ -146,16 +128,6 @@ function this.fullpath()
   local fullpath = name_filter(vim.fn.expand "%:p")
   if status then
     fullpath = string.format("%s %s", fullpath, status)
-  end
-  return fullpath
-end
-
--- Analogous to harpoon_filename, but uses the full path of the buffer
-function this.harpoon_fullpath()
-  local fullpath = this.fullpath()
-  local harpoon_id = this.harpoon()
-  if harpoon_id then
-    fullpath = string.format("(%s) %s", harpoon_id, fullpath)
   end
   return fullpath
 end
@@ -200,6 +172,12 @@ end
 -- already present in plainline one step further. I based these on:
 -- https://www.gnu.org/software/emacs/manual/html_node/emacs/Mode-Line.html
 
+-- Shows just the filename, without the buffer status; inteded for use in
+-- conjunction with the emacs status
+function this.emacs_filename()
+  return name_filter(vim.fn.expand "%:.")
+end
+
 -- Shows that weird thing in the beggining of the emacs modeline
 function this.emacs_status()
   -- Basic file encoding portion (emacs nerds know this is more complicated in
@@ -215,7 +193,7 @@ function this.emacs_status()
   -- Buffer status portion
   local status = "--" -- assume unmodified
   if not vim.bo.modifiable or vim.bo.readonly then
-    status = "%%%%" -- gotta escape the %s
+    status = "%%%%" -- gotta escape the %'s
   elseif vim.bo.modified then
     status = "**"
   end
@@ -229,10 +207,19 @@ function this.emacs_modes()
   if major_mode == "" then
     major_mode = "Fundamental" -- for empty buffers such as the initial
   end
-  -- I really don't know what I could shows for the minor modes
+  -- I really don't know what I could show for the minor modes
   return string.format("(%s)", major_mode)
 end
 
-function this.emacs_linenum() return "L%l" end -- line number, emacs-style
+-- Shows the line number, emacs style
+function this.emacs_linenum()
+  return "L%l"
+end
+
+-- Shows the position in the buffer, emacs style, emulating the usage of
+-- the builtin column-number-mode
+function this.emacs_position()
+  return "(%l,%v)"
+end
 
 return this

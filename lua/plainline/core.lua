@@ -34,7 +34,7 @@ local function get_ptable(sections)
   return ptable
 end
 
--- Receives a table of functions (as produced by get_ptable), calls them and
+-- Takes a table of functions (as produced by get_ptable), calls them and
 -- formats their results into a string, using the separator
 local function make_status(ptable, separator)
   local status = { left = "", right = "" }

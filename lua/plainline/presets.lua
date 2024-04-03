@@ -18,36 +18,29 @@
 
 local presets = {}
 
--- The default configuration
+-- Default configuration
 presets.default = {
-  -- Configurations that are used to assemble the basic shape of the statusline
   sections = {
-    left  = { "mode", "branch", "harpoon_filename", "lsp" },
+    left  = { "mode", "branch", "filename", "lsp" },
     right = { "filetype", "fileformat", "percentage", "position" },
   },
-  inactive_sections = { left  = { "harpoon_fullpath" }, right = {} },
-  separator = " | ",
-  -- Options that are seen by the providers at runtime
-  provider_opts = {
-    name_filter = true,  -- enable the name filter
-    trad_status = false, -- use traditional vim status indicators
-  }
+  inactive_sections = { left  = { "fullpath" }, right = {} },
+  provider_opts = { name_filter = true, trad_status = false },
+  separator = " | ", -- suggested alternative: " │ "
 }
 
--- This is one is for the emacs (evil) users. It combines the available
--- providers to try to emulate the stock emacs modeline. Based on:
--- https://www.gnu.org/software/emacs/manual/html_node/emacs/Mode-Line.html
+-- Emulation of the stock emacs modeline
 presets.emacs = {
   sections = {
-    left  = { "emacs_status", "branch", "filename" },
+    left  = { "emacs_status", "branch", "emacs_filename" },
     right = { "mode", "trad_percentage", "emacs_linenum", "emacs_modes" },
   },
   inactive_sections = {
-    left  = { "emacs_status", "branch", "filename" },
+    left  = { "emacs_status", "branch", "emacs_filename" },
     right = { "trad_percentage", "emacs_linenum", "emacs_modes" },
   },
-  separator = "  ",
   provider_opts = { name_filter = true, trad_status = false },
+  separator = "  ",
 }
 
 return presets

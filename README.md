@@ -26,7 +26,7 @@ You may configure plainline by providing a table to the `setup` function. This t
 - `sections` determines which providers are used to construct the active statusline;
 - `inactive_sections` does the same, but for the inactive statusline;
 - `separator` determines the text that is shown between the outputs of providers;
-- and `provide_opts` is a table of provider options.
+- and `provider_opts` is a table of provider options.
 
 Providers are simply functions that fetch a particular piece of information and display it in text form. They are the building blocks of the statusline. The buitin
 providers, which are all defined in [`providers.lua`](./lua/plainline/providers.lua), can be specified by name. You can also pass your own functions as providers,
@@ -42,16 +42,11 @@ Provider options are a set of boolean keys that configure the behavior of some p
 The name filter is a function within plainline that attempts to clean up buffer names before they are displayed in the statusline. This is done mostly to reduce
 noise and make using certain plugins more pleasant. Here's a brief description of the things it does:
 
-- removes protocol-style prefixes (`[protocol]://`), as seen in [fugitive](https://github.com/tpope/vim-fugitive) and other plugins;
+- removes protocol-style prefixes (`[protocol]://`);
+- truncates the name of terminals to show just the shell name;
 - replaces the contents of the `HOME` environment variable with `~`;
-- shows just the filename for help and manpage buffers (because no one is interested in the full path);
-- shows just the repository name for fugitive buffers (same reason as above).
-
-### Harpoon Integration
-
-If [harpoon.nvim](https://github.com/ThePrimeagen/harpoon) is installed, the `harpoon_filename` and `harpoon_fullpath` providers (which are used by default) will
-use it to display the associated harpoon mark number of the current buffer, in addition to its filepath and modified status. This may come in handy if you've set up
-shortcuts to navigate to harpoon-marked files by their mark number. **Note**: this feature currently only works with harpoon v1.
+- shows just the filename for help and manpage buffers;
+- shows just the repository name for fugitive buffers.
 
 ### Using Presets
 
@@ -64,14 +59,27 @@ which emulates the look of the stock emacs modeline.
 ```lua
 require("plainline").setup {
   sections = {
-    left  = { "mode", "branch", "harpoon_filename", "lsp" },
+    left  = { "mode", "branch", "filename", "lsp" },
     right = { "filetype", "fileformat", "percentage", "position" },
   },
-  inactive_sections = { left  = { "harpoon_fullpath" }, right = {} },
+  inactive_sections = { left  = { "fullpath" }, right = {} },
   provider_opts = { name_filter = true, trad_status = false }
   separator = " | ", -- suggested alternative: " │ "
 }
 ```
+
+### Tabline
+
+Plainline also comes with a simple tabline module. It preserves the aesthetics of the default tabline while also reducing noise and offering more granular
+control of its look to the user. To enable it, simply add the following line to your config:
+
+```lua
+require("plainline.tabs").setup()
+```
+
+To configure it, you may provide as an argument to `setup` a `tab_title` function. It will be called once for each tabpage, receiving the corresponding tab ID
+and number each time. Its return value will be used as the title for that tab. The default implementation, used if no function is given, simply concatenates
+the tab number with its current buffer's name.
 
 ## Screenshots
 
