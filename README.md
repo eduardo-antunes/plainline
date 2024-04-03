@@ -68,7 +68,7 @@ require("plainline").setup {
 }
 ```
 
-### Tabline
+## Tabline
 
 Plainline also comes with a simple tabline module. It preserves the aesthetics of the default tabline while also reducing noise and offering more granular
 control of its look to the user. To enable it, simply add the following line to your config:
@@ -93,6 +93,11 @@ proper contrast to the statusline in relation to the background, as this greatly
 ### Emacs Preset
 
 ![plainline-emacs](/static/plainline-emacs.png?raw=true "Emacs preset")
+
+### Tabline
+
+![tabline](/static/tabline.png?raw=true "Tabline")
+
 
 ## License
 
