@@ -19,16 +19,14 @@
 -- with concrete functions as its elements
 local function get_ptable(sections)
   local ptable = { left = {}, right = {} }
-  local predefined = require("plainline.providers")
-  for section, providers in pairs(sections) do
+  local builtin = require("plainline.providers")
+  for s, providers in pairs(sections) do
     for _, provider in ipairs(providers) do
-      local p = provider
-      -- p should be either a string (predefined provider) or a function
-      vim.validate { providers = { p, { "string", "function" } } }
-      if type(p) == "string" then
-        p = predefined[p] -- get predefined provider
+      if type(provider) == "string" then
+        -- Providers given as strings => builtin provider functions
+        provider = builtin[provider]
       end
-      table.insert(ptable[section], p)
+      table.insert(ptable[s], provider)
     end
   end
   return ptable
@@ -37,19 +35,18 @@ end
 -- Takes a table of functions (as produced by get_ptable), calls them and
 -- formats their results into a string, using the separator
 local function make_status(ptable, separator)
-  local status = { left = "", right = "" }
+  local status = { left = {}, right = {} }
   for s, providers in pairs(ptable) do
-    local before = false -- was there a provider before?
     for _, provider in ipairs(providers) do
       local ok, res = pcall(provider)
       if ok and res and res ~= "" then
-        local sep = before and separator or ""
-        status[s] = string.format("%s%s%s", status[s], sep, res)
-        before = true
+        table.insert(status[s], res)
       end
     end
   end
-  return string.format(" %s%%=%s ", status.left, status.right)
+  local left = table.concat(status.left, separator)
+  local right = table.concat(status.right, separator)
+  return string.format(" %s%%=%s ", left, right)
 end
 
 -- Updates the buffer local variable plainline_branch, used by the predefined

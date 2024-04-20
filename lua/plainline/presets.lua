@@ -16,31 +16,52 @@
 
 -- Presets of configuration for plainline
 
-local presets = {}
-
--- Default configuration
-presets.default = {
-  sections = {
-    left  = { "mode", "branch", "filename", "lsp" },
-    right = { "filetype", "fileformat", "percentage", "position" },
+return {
+  -- Default configuration
+  default = {
+    sections = {
+      left  = {
+        "mode",
+        "branch",
+        "name",
+        "diagnostics",
+      },
+      right = {
+        "macro",
+        "filetype",
+        "fileformat",
+        "percentage",
+        "position"
+      },
+    },
+    inactive_sections = {
+      left  = { "path" },
+      right = { "percentage" },
+    },
+    separator = " │ ",
   },
-  inactive_sections = { left  = { "fullpath" }, right = {} },
-  provider_opts = { name_filter = true, trad_status = false },
-  separator = " | ", -- suggested alternative: " │ "
+  -- Emulation of the stock emacs modeline
+  emacs = {
+    sections = {
+      left = {
+        "emacs_status",
+        "emacs_name",
+        "emacs_percentage",
+        "emacs_position",
+        "emacs_branch",
+        "emacs_mode",
+      }
+    },
+    inactive_sections = {
+      left = {
+        "emacs_status",
+        "emacs_name",
+        "emacs_percentage",
+        "emacs_position",
+        "emacs_branch",
+        "emacs_mode",
+      }
+    },
+    separator = "  ",
+  },
 }
-
--- Emulation of the stock emacs modeline
-presets.emacs = {
-  sections = {
-    left  = { "emacs_status", "branch", "emacs_filename" },
-    right = { "mode", "trad_percentage", "emacs_linenum", "emacs_modes" },
-  },
-  inactive_sections = {
-    left  = { "emacs_status", "branch", "emacs_filename" },
-    right = { "trad_percentage", "emacs_linenum", "emacs_modes" },
-  },
-  provider_opts = { name_filter = true, trad_status = false },
-  separator = "  ",
-}
-
-return presets

@@ -21,32 +21,15 @@ Note that neovim >= 0.7 is required.
 
 ## Configuration
 
-You may configure plainline by providing a table to the `setup` function. This table can contain any or all of four keys:
+You may configure plainline by providing a table to the `setup` function. This table can contain any or all of three keys:
 
-- `sections` determines which providers are used to construct the active statusline;
+- `sections` lists the providers used in the active statusline;
 - `inactive_sections` does the same, but for the inactive statusline;
-- `separator` determines the text that is shown between the outputs of providers;
-- and `provider_opts` is a table of provider options.
+- and `separator` is the text that is shown between the outputs of providers.
 
 Providers are simply functions that fetch a particular piece of information and display it in text form. They are the building blocks of the statusline. The buitin
 providers, which are all defined in [`providers.lua`](./lua/plainline/providers.lua), can be specified by name. You can also pass your own functions as providers,
 as long as those functions return strings (or nil).
-
-Provider options are a set of boolean keys that configure the behavior of some providers. Currently, the following options are available:
-
-- `name_filter` enables or disables the name filter. It's on by default;
-- `trad_status` changes the plainline-style status indicators (`*` for modified buffers and `#` for read-only ones) for the traditional vim status indicators (namely, `[+]` and `[-]`). It's off by default.
-
-### Name Filter
-
-The name filter is a function within plainline that attempts to clean up buffer names before they are displayed in the statusline. This is done mostly to reduce
-noise and make using certain plugins more pleasant. Here's a brief description of the things it does:
-
-- removes protocol-style prefixes (`[protocol]://`);
-- truncates the name of terminals to show just the shell name;
-- replaces the contents of the `HOME` environment variable with `~`;
-- shows just the filename for help and manpage buffers;
-- shows just the repository name for fugitive buffers.
 
 ### Using Presets
 
@@ -59,31 +42,20 @@ which emulates the look of the stock emacs modeline.
 ```lua
 require("plainline").setup {
   sections = {
-    left  = { "mode", "branch", "filename", "lsp" },
-    right = { "filetype", "fileformat", "percentage", "position" },
+    left  = { "mode", "branch", "name", "diagnostics", },
+    right = { "macro", "filetype", "fileformat", "percentage", "position" },
   },
-  inactive_sections = { left  = { "fullpath" }, right = {} },
-  provider_opts = { name_filter = true, trad_status = false }
-  separator = " | ", -- suggested alternative: " │ "
+  inactive_sections = {
+    left  = { "path" },
+    right = { "percentage" },
+  },
+  separator = " │ ",
 }
 ```
 
-## Tabline
-
-Plainline also comes with a simple tabline module. It preserves the aesthetics of the default tabline while also reducing noise and offering more granular
-control of its look to the user. To enable it, simply add the following line to your config:
-
-```lua
-require("plainline.tabs").setup()
-```
-
-To configure it, you may provide as an argument to `setup` a `tab_title` function. It will be called once for each tabpage, receiving the corresponding tab ID
-and number each time. Its return value will be used as the title for that tab. The default implementation, used if no function is given, simply concatenates
-the tab number with its current buffer's name.
-
 ## Screenshots
 
-The theme used is [onedark.nvim](https://github.com/navarasu/onedark.nvim) and the font is Source Code Pro. I would recommend using a theme that, like onedark, gives
+The theme used is [onedark.nvim](https://github.com/navarasu/onedark.nvim) and the font is Inconsolata LGC. I would recommend using a theme that, like onedark, gives
 proper contrast to the statusline in relation to the background, as this greatly improves readability.
 
 ### Default Configuration
@@ -93,11 +65,6 @@ proper contrast to the statusline in relation to the background, as this greatly
 ### Emacs Preset
 
 ![plainline-emacs](/static/plainline-emacs.png?raw=true "Emacs preset")
-
-### Tabline
-
-![tabline](/static/tabline.png?raw=true "Tabline")
-
 
 ## License
 
