@@ -53,6 +53,14 @@ function this.mode()
   return string.format("<%s>", mode_id[current])
 end
 
+-- Shows the current tab number, if there are more tabs open
+function this.tabpage()
+  if vim.fn.tabpagenr("$") > 1 then
+    local t = vim.api.nvim_tabpage_get_number(0)
+    return string.format("T%d", t)
+  end
+end
+
 -- Shows the current git branch
 function this.branch()
   if vim.b.plainline_branch then
@@ -110,12 +118,12 @@ end
 function this.macro()
   local name = vim.fn.reg_recording()
   if name == "" then return nil end -- not recording
-  return string.format("recording @%s", name)
+  return string.format("@%s", name)
 end
 
 -- Shows the filetype of the buffer
 function this.filetype()
-  return vim.bo.filetype:gsub("^%l", string.upper)
+  return vim.bo.filetype
 end
 
 -- Shows the fileformat of the buffer, unless it's unix

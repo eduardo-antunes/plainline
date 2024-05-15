@@ -6,15 +6,10 @@ and pratical while also retaining the visual minimalism of the stock statusline.
 
 ## Installation
 
-To install it, simply use your preferred neovim plugin manager. Using [lazy.nvim](https://github.com/folke/lazy.nvim), you would have the following:
+Install it using your favorite plugin manager. Using [lazy.nvim](https://github.com/folke/lazy.nvim), you would have the following:
 
 ```lua
-{
-  "eduardo-antunes/plainline",
-  config = function ()
-    require("plainline").setup()
-  end
-}
+{ "eduardo-antunes/plainline", config = function() require("plainline").setup() end }
 ```
 
 Note that neovim >= 0.7 is required.
@@ -42,7 +37,7 @@ which emulates the look of the stock emacs modeline.
 ```lua
 require("plainline").setup {
   sections = {
-    left  = { "mode", "branch", "name", "diagnostics", },
+    left  = { "mode", "branch", "name", "diagnostics" },
     right = { "macro", "filetype", "fileformat", "percentage", "position" },
   },
   inactive_sections = {

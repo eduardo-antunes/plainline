@@ -34,7 +34,7 @@ end
 
 -- Takes a table of functions (as produced by get_ptable), calls them and
 -- formats their results into a string, using the separator
-local function make_status(ptable, separator)
+local function mkstatus(ptable, separator)
   local status = { left = {}, right = {} }
   for s, providers in pairs(ptable) do
     for _, provider in ipairs(providers) do
@@ -70,8 +70,8 @@ function this.enable(config)
   local on = get_ptable(config.sections)
   local off = get_ptable(config.inactive_sections)
   -- Statusline functions for active and inactive states, respectively
-  this.on  = function() return make_status(on, config.separator) end
-  this.off = function() return make_status(off, config.separator) end
+  this.on  = function() return mkstatus(on, config.separator) end
+  this.off = function() return mkstatus(off, config.separator) end
 
   -- Core autocommands to get plainline running
   local plainline = vim.api.nvim_create_augroup("plainline", {})

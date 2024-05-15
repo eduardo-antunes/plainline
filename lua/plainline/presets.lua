@@ -22,6 +22,7 @@ return {
     sections = {
       left  = {
         "mode",
+        "tabpage",
         "branch",
         "name",
         "diagnostics",
@@ -31,7 +32,7 @@ return {
         "filetype",
         "fileformat",
         "percentage",
-        "position"
+        "position",
       },
     },
     inactive_sections = {
