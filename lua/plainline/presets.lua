@@ -39,7 +39,10 @@ return {
       left  = { "path" },
       right = { "percentage" },
     },
-    separator = " │ ",
+    global = false,
+    separator = "│",
+    formatter = function (component) return string.format(' %s ', component) end,
+    winbar = nil,
   },
   -- Emulation of the stock emacs modeline
   emacs = {
