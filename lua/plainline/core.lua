@@ -124,6 +124,14 @@ end
 local function setup_globals(config)
   vim.go.statusline = "%{%v:lua.require'plainline.core'.on()%}"
 
+  -- Tragically, quickfix tries to set its own statusline.
+  -- See: https://github.com/neovim/neovim/issues/27731
+  vim.api.nvim_create_autocmd({'FileType'}, {
+    pattern = 'qf',
+    command = 'setl statusline=',
+    group=this.plainline_group,
+  })
+
   if config.winbar then
     -- Unfortunately, this still needs to be run using autocommands
     vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
@@ -156,7 +164,7 @@ function this.enable(config)
 
   -- If laststatus is set to 3, this means the user has a global status bar,
   -- which means there is no need to set it individually for each window.
-  if vim.o.laststatus == 3 then
+  if vim.go.laststatus == 3 then
     setup_globals(config)
   else
     setup_locals(config)
