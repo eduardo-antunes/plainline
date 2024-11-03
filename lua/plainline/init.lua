@@ -24,7 +24,7 @@ local function full_config(user_config)
       if not preset then
          error(string.format("Inexistent plainline preset: %s", user_config))
       end
-      return preset
+      user_config = preset
    end
    user_config = user_config or {}
    local config = vim.tbl_deep_extend("keep", user_config, presets.default)
