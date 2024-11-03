@@ -33,7 +33,8 @@ local function get_ptable(sections)
 end
 
 -- Takes a table of functions (as produced by get_ptable), calls them and
--- formats their results into a string, using the separator
+-- formats each result using the `formatter` from the config and then joins
+-- the formatted results into the final string, using the `separator`.
 local function mkstatus(ptable, config)
   local separator = config.separator
   local formatter = config.formatter
@@ -153,10 +154,12 @@ function this.enable(config)
     this.winbar_off = function() return mkstatus(winbar_off, config) end
   end
 
-  if not config.global then
-    setup_locals(config)
-  else
+  -- If laststatus is set to 3, this means the user has a global status bar,
+  -- which means there is no need to set it individually for each window.
+  if vim.o.laststatus == 3 then
     setup_globals(config)
+  else
+    setup_locals(config)
   end
 
   -- Set up ocasional updates to the b:plainline_branch variable
