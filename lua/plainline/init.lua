@@ -24,6 +24,10 @@ local function full_config(user_config)
       if not preset then
          error(string.format("Inexistent plainline preset: %s", user_config))
       end
+      if preset ~= presets.default then
+        -- Makes all presets fallback to the default configuration
+        setmetatable(preset, {__index=preset})
+      end
       return preset
    end
    user_config = user_config or {}
