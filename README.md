@@ -16,11 +16,12 @@ Note that neovim >= 0.7 is required.
 
 ## Configuration
 
-You may configure plainline by providing a table to the `setup` function. This table can contain any or all of three keys:
+You may configure plainline by providing a table to the `setup` function. This table can contain any or all of four keys:
 
 - `sections` lists the providers used in the active statusline;
 - `inactive_sections` does the same, but for the inactive statusline;
-- and `separator` is the text that is shown between the outputs of providers.
+- `separator` is the text that is shown between the outputs of providers;
+- and `formatter`, which is a function that is run on the result of each provider before it gets displayed.
 
 Providers are simply functions that fetch a particular piece of information and display it in text form. They are the building blocks of the statusline. The buitin
 providers, which are all defined in [`providers.lua`](./lua/plainline/providers.lua), can be specified by name. You can also pass your own functions as providers,
@@ -45,6 +46,9 @@ require("plainline").setup {
     right = { "percentage" },
   },
   separator = " │ ",
+  formatter = function (component)
+    return string.format(" %s ", component)
+  end
 }
 ```
 

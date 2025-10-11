@@ -41,7 +41,9 @@ return {
     },
     global = false,
     separator = "│",
-    formatter = function (component) return string.format(' %s ', component) end,
+    formatter = function(component)
+      return string.format(' %s ', component)
+    end,
     winbar = nil,
   },
   -- Emulation of the stock emacs modeline
@@ -54,7 +56,8 @@ return {
         "emacs_position",
         "emacs_branch",
         "emacs_mode",
-      }
+      },
+      right = {},
     },
     inactive_sections = {
       left = {
@@ -64,7 +67,8 @@ return {
         "emacs_position",
         "emacs_branch",
         "emacs_mode",
-      }
+      },
+      right = {},
     },
     separator = "  ",
   },
