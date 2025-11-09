@@ -1,37 +1,55 @@
 # Plainline
 
-The Merriam-Webster dictionary defines [plain](https://www.merriam-webster.com/dictionary/plain) as undecorated, unobstructed and clear.
-Plainline is a simple and succint plugin that brings those qualities to the space of neovim statuslines. It tries to be highly informative
-and pratical while also retaining the visual minimalism of the stock statusline.
+The Merriam-Webster dictionary defines
+[plain](https://www.merriam-webster.com/dictionary/plain) as undecorated,
+unobstructed and clear. Plainline is a simple and succint plugin that brings
+those qualities to the space of neovim statuslines. It tries to be highly
+informative and pratical while also retaining the visual minimalism of the stock
+statusline.
 
 ## Installation
 
-Install it using your favorite plugin manager. Using [lazy.nvim](https://github.com/folke/lazy.nvim), you would have the following:
+Install it using your favorite plugin manager, and don't forget to invoke the
+`setup` function. With the new builtin plugin manager of neovim, this would be:
 
 ```lua
-{ "eduardo-antunes/plainline", config = function() require("plainline").setup() end }
+vim.pack.add { "https://github.com/eduardo-antunes/plainline" }
+require("plainline").setup()
 ```
 
-Note that neovim >= 0.7 is required.
+Note that neovim >= 0.7 is required for the plugin, and that `vim.pack` is only
+available for neovim 0.12+ only (for older versions, use a third-party plugin
+manager).
 
 ## Configuration
 
-You may configure plainline by providing a table to the `setup` function. This table can contain any or all of four keys:
+You may configure plainline by providing a table to the `setup` function. This
+table can contain any or all of four keys:
 
 - `sections` lists the providers used in the active statusline;
 - `inactive_sections` does the same, but for the inactive statusline;
 - `separator` is the text that is shown between the outputs of providers;
-- and `formatter`, which is a function that is run on the result of each provider before it gets displayed.
+- `formatter` is a function that is run on the result of each provider before it
+  gets displayed;
+- `winbar` should be a table with the `sections` and `inactive_sections` keys,
+  following the exact same structure as the ones in the top-level config. They
+  specify the providers used for the active and inactive winbar, respectively.
+  Mostly useful with a global statusline.
 
-Providers are simply functions that fetch a particular piece of information and display it in text form. They are the building blocks of the statusline. The buitin
-providers, which are all defined in [`providers.lua`](./lua/plainline/providers.lua), can be specified by name. You can also pass your own functions as providers,
-as long as those functions return strings (or nil).
+Providers are simply functions that fetch a particular piece of information and
+display it in text form. They are the building blocks of the statusline. The
+buitin providers, which are all defined in
+[`providers.lua`](./lua/plainline/providers.lua), can be specified by name. You
+can also pass your own functions as providers, as long as those functions return
+strings (or nil).
 
 ### Using Presets
 
-The `setup` function also accepts a string as its argument, interpreting it as the name of a preset. Presets are buitin configurations that combine the available
-providers to create some specific style. They are defined in [`presets.lua`](./lua/plainline/presets.lua); emacs users might want to check out the `emacs` preset,
-which emulates the look of the stock emacs modeline.
+The `setup` function also accepts a string as its argument, interpreting it as
+the name of a preset. Presets are buitin configurations that combine the
+available providers to create some specific style. They are defined in
+[`presets.lua`](./lua/plainline/presets.lua); emacs users might want to check
+out the `emacs` preset, which emulates the look of the stock emacs modeline.
 
 ### Default Configuration
 
@@ -48,14 +66,17 @@ require("plainline").setup {
   separator = " │ ",
   formatter = function (component)
     return string.format(" %s ", component)
-  end
+  end,
+  winbar = nil -- no winbar by default
 }
 ```
 
 ## Screenshots
 
-The theme used is [onedark.nvim](https://github.com/navarasu/onedark.nvim) and the font is Inconsolata LGC. I would recommend using a theme that, like onedark, gives
-proper contrast to the statusline in relation to the background, as this greatly improves readability.
+The theme used is [onedark.nvim](https://github.com/navarasu/onedark.nvim) and
+the font is Inconsolata LGC. I would recommend using a theme that, like onedark,
+gives proper contrast to the statusline in relation to the background, as this
+greatly improves readability.
 
 ### Default Configuration
 
@@ -68,7 +89,7 @@ proper contrast to the statusline in relation to the background, as this greatly
 ## License
 
 ```
-Copyright 2023-2024 Eduardo Antunes dos Santos Vieira
+Copyright 2023-2025 Eduardo Antunes dos Santos Vieira
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
