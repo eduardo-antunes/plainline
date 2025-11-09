@@ -26,22 +26,46 @@ manager).
 You may configure plainline by providing a configuration table to the `setup`
 function. This table can contain any or all of five keys:
 
-- `sections` lists the providers used in the active statusline;
-- `inactive_sections` does the same, but for the inactive statusline;
-- `separator` is the text that is shown between the outputs of providers;
-- `formatter` is a function that is run on the result of each provider before it
-  gets displayed;
-- `winbar` should be a table with the `sections` and `inactive_sections` keys,
-  following the exact same structure as the ones in the top-level config. They
-  specify the providers used for the active and inactive winbar, respectively.
-  Mostly useful with a global statusline.
+- `sections` defines the active statusline;
+- `inactive_sections` defines the inactive statusline;
+- `separator` sets the text that is shown between the outputs of providers;
+- `formatter` is a function that is run on the result of each provider before
+  it gets displayed. By default, surrounds it with spaces;
+- `winbar` should be nil or a table with the `sections` and `inactive_sections`
+  keys, which define the active and inactive winbar, respectively. Mostly
+  useful with a global statusline (`laststatus` set to 3).
 
-Providers are simply functions that fetch a particular piece of information and
-display it in text form. They are the building blocks of the statusline. The
-buitin providers, which are all defined in
-[`providers.lua`](./lua/plainline/providers.lua), can be specified by name. You
-can also pass your own functions as providers, as long as those functions return
-strings (or nil).
+### Sections, inactive sections and providers
+
+The `sections` and `inactive_sections` keys in both the top-level config and the
+`winbar` configuration should be tables with any or all of two keys: `left` and
+`right`, which define the left and right sections of the statusline/winbar,
+respectively. Each of these keys should be a list of providers.
+
+A provider is a simply a function that fetches a particular piece of information
+and returns it as nicely formatted text. They are the building blocks of
+plainline. The builtin providers, which are listed below, may be specified by
+name (i.e. as strings). You can also pass your functions as providers, as long
+as they return strings (or nil).
+
+* `mode`: current mode;
+* `tabpage`: current tab page number;
+* `branch`: current git branch, if in a git repository;
+* `name_only`: just the clean buffer name;
+* `status`: buffer status. `*` for modified and `#` for read-only;
+* `name`: `name_only` + `status` in the same provider;
+* `diagnostics`: diagnostics, of course;
+* `path_only`: just the clean, absolute filepath of the current buffer;
+* `path`: `path_only` + `status` in the same provider;
+* `macro`: name of macro being recorded, if any;
+* `filetype`: filetype for the current buffer;
+* `fileformat`: fileformat for the current buffer, if it's not unix;
+* `percentage`: percentage of the buffer that has been scrolled down;
+* `position`: position of the cursor with the buffer.
+
+The `name_only` and `path_only` providers apply a cleaning function to their
+respective pieces of information. The idea behind that is to reduce visual
+noise, improving clarity.
 
 ### Default Configuration
 
@@ -64,7 +88,7 @@ require("plainline").setup {
     },
   },
   inactive_sections = {
-    left  = { "name" },
+left  = { "name" },
     right = { "percentage" },
   },
   separator = "│",
