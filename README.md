@@ -23,8 +23,8 @@ manager).
 
 ## Configuration
 
-You may configure plainline by providing a table to the `setup` function. This
-table can contain any or all of four keys:
+You may configure plainline by providing a configuration table to the `setup`
+function. This table can contain any or all of five keys:
 
 - `sections` lists the providers used in the active statusline;
 - `inactive_sections` does the same, but for the inactive statusline;

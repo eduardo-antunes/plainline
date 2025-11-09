@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]--
 
-
 local M = {}
 local fmt = string.format
 
@@ -76,8 +75,8 @@ local function set_status(mode)
   if mode ~= "on" and mode ~= "off" then return end
   if not M.status_on or not M.status_off then return end
 
-  local expr = fmt("%%{%%v:lua.require'plainline.core'.status_%s%%}", mode)
-  vim.bo.statusline = str
+  local expr = fmt("%%{%%v:lua.require'plainline.core'.status_%s()%%}", mode)
+  vim.wo.statusline = expr
 end
 
 -- Sets winbar for the current window
@@ -89,14 +88,11 @@ local function set_winbar(mode)
 
   -- No point in setting winbar for floating windows
   if vim.api.nvim_win_get_config(0).relative ~= "" then return end
-  local expr = fmt("%%{%%v:lua.require'plainline.core'.winbar_%s%%}", mode)
+  local expr = fmt("%%{%%v:lua.require'plainline.core'.winbar_%s()%%}", mode)
   vim.wo.winbar = expr
 end
 
---------------------------------------------------------------------------------
-
--- Sets up the appropriate autocommands for non-global statusline
-local function autocmd_setup_local(group)
+local function autocmd_setup_status(group)
   vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
     callback = function() set_status("on") end,
     group = group,
@@ -104,19 +100,6 @@ local function autocmd_setup_local(group)
   vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
     callback = function() set_status("off") end,
     group = group,
-  })
-end
-
--- Sets up the appropriate autocommands for global statusline
-local function autocmd_setup_global(config)
-  vim.go.statusline = "%{%v:lua.require'plainline.core'.status_on()%}"
-  -- Tragically, quickfix tries to set its own statusline.
-  -- See: https://github.com/neovim/neovim/issues/27731
-  vim.api.nvim_create_autocmd("FileType", {
-    pattern = "qf", group = group,
-    callback = function()
-      vim.wo.statusline = ""
-    end
   })
 end
 
@@ -143,6 +126,7 @@ function M.enable(config)
   local off = get_ptable(config.inactive_sections)
   M.status_on  = function() return mkstatus(on, config) end
   M.status_off = function() return mkstatus(off, config) end
+  autocmd_setup_status(plainline_group)
 
     -- Winbar functions for active and inactive states, respectively
   if config.winbar then
@@ -152,11 +136,6 @@ function M.enable(config)
     M.winbar_off = function() return mkstatus(winbar_off, config) end
     autocmd_setup_winbar(plainline_group)
   end
-
-  -- If laststatus is set to 3, this means the user has a global status bar,
-  -- which means there is no need to set it individually for each window.
-  if vim.go.laststatus == 3 then autocmd_setup_global(plainline_group)
-  else autocmd_setup_local(plainline_group) end
 
   -- Set up ocasional updates to the b:plainline_branch variable
   vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "DirChanged" }, {
