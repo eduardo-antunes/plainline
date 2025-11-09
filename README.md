@@ -17,8 +17,8 @@ vim.pack.add { src = "https://github.com/eduardo-antunes/plainline" }
 require("plainline").setup()
 ```
 
-Note that neovim >= 0.10 is required for the plugin, and that `vim.pack` is only
-available for neovim 0.12+ only (for older versions, use a third-party plugin
+Note that neovim 0.10+ is required for the plugin, and that `vim.pack` is only
+available for neovim 0.12+ (for older versions, use a third-party plugin
 manager).
 
 ## Configuration
@@ -64,7 +64,7 @@ require("plainline").setup {
     },
   },
   inactive_sections = {
-    left  = { "path" },
+    left  = { "name" },
     right = { "percentage" },
   },
   separator = "│",
@@ -75,14 +75,16 @@ require("plainline").setup {
 }
 ```
 
-## Screenshots
-
-The theme used is [onedark.nvim](https://github.com/navarasu/onedark.nvim) and
-the font is Inconsolata LGC. I would recommend using a theme that, like onedark,
-gives proper contrast to the statusline in relation to the background, as this
-greatly improves readability.
+## Screenshot
 
 ![screenshot](/static/screenshot.png?raw=true)
+
+The above screenshot showcases the default configuration with both the
+`sections` and `inactive_sections` keys of the `winbar`option set to `{ right =
+{ "status", "name_only" }}` and `laststatus` set to 2 (the default). The theme
+used is [`accent.nvim`](https://github.com/eduardo-antunes/accent.nvim) with the
+accent color set to green and the `invert_status` option enabled. The font is
+Hack.
 
 ## License
 

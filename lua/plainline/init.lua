@@ -32,7 +32,7 @@ local default_config = {
     },
   },
   inactive_sections = {
-    left  = { "path" },
+    left  = { "name" },
     right = { "percentage" },
   },
   separator = "│",
