@@ -42,11 +42,11 @@ The `sections` and `inactive_sections` keys in both the top-level config and the
 `right`, which define the left and right sections of the statusline/winbar,
 respectively. Each of these keys should be a list of providers.
 
-A provider is a simply a function that fetches a particular piece of information
+A provider is simply a function that fetches a particular piece of information
 and returns it as nicely formatted text. They are the building blocks of
 plainline. The builtin providers, which are listed below, may be specified by
-name (i.e. as strings). You can also pass your functions as providers, as long
-as they return strings (or nil).
+name (i.e. as strings). You can also pass your own functions as providers, as
+long as they return strings (or nil).
 
 * `mode`: current mode;
 * `tabpage`: current tab page number;
@@ -61,7 +61,7 @@ as they return strings (or nil).
 * `filetype`: filetype for the current buffer;
 * `fileformat`: fileformat for the current buffer, if it's not unix;
 * `percentage`: percentage of the buffer that has been scrolled down;
-* `position`: position of the cursor with the buffer.
+* `position`: position of the cursor within the buffer.
 
 The `name_only` and `path_only` providers apply a cleaning function to their
 respective pieces of information. The idea behind that is to reduce visual
@@ -88,12 +88,12 @@ require("plainline").setup {
     },
   },
   inactive_sections = {
-left  = { "name" },
+    left  = { "name" },
     right = { "percentage" },
   },
   separator = "│",
-  formatter = function(component)
-    return string.format(' %s ', component)
+  formatter = function(str)
+    return string.format(" %s ", str)
   end,
   winbar = nil, -- no winbar by default
 }

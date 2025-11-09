@@ -36,8 +36,8 @@ local default_config = {
     right = { "percentage" },
   },
   separator = "│",
-  formatter = function(component)
-    return string.format(' %s ', component)
+  formatter = function(str)
+    return string.format(" %s ", str)
   end,
   winbar = nil, -- no winbar by default
 }
