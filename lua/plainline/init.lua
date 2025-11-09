@@ -14,28 +14,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]--
 
--- Takes a user configuration and expands it into a full config table
-local function full_config(user_config)
-   local presets = require("plainline.presets")
-   -- The user may specify just a preset name as the config. In this case, the
-   -- config will be a string and we attempt to load that preset
-   if type(user_config) == "string" then
-      local preset = presets[user_config]
-      if not preset then
-         error(string.format("Inexistent plainline preset: %s", user_config))
-      end
-      user_config = preset
-   end
-   user_config = user_config or {}
-   local config = vim.tbl_deep_extend("keep", user_config, presets.default)
-   return config
-end
+local default_config = {
+  sections = {
+    left  = {
+      "mode",
+      "tabpage",
+      "branch",
+      "name",
+      "diagnostics",
+    },
+    right = {
+      "macro",
+      "filetype",
+      "fileformat",
+      "percentage",
+      "position",
+    },
+  },
+  inactive_sections = {
+    left  = { "path" },
+    right = { "percentage" },
+  },
+  separator = "│",
+  formatter = function(component)
+    return string.format(' %s ', component)
+  end,
+  winbar = nil, -- no winbar by default
+}
 
-local this = {}
+local M = {}
 
-function this.setup(user_config)
-  local config = full_config(user_config)
+function M.setup(config)
+  config = config or {}
+  config = vim.tbl_deep_extend("keep", config, default_config)
   require("plainline.core").enable(config)
 end
 
-return this
+return M

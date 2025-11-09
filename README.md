@@ -13,11 +13,11 @@ Install it using your favorite plugin manager, and don't forget to invoke the
 `setup` function. With the new builtin plugin manager of neovim, this would be:
 
 ```lua
-vim.pack.add { "https://github.com/eduardo-antunes/plainline" }
+vim.pack.add { src = "https://github.com/eduardo-antunes/plainline" }
 require("plainline").setup()
 ```
 
-Note that neovim >= 0.7 is required for the plugin, and that `vim.pack` is only
+Note that neovim >= 0.10 is required for the plugin, and that `vim.pack` is only
 available for neovim 0.12+ only (for older versions, use a third-party plugin
 manager).
 
@@ -43,31 +43,35 @@ buitin providers, which are all defined in
 can also pass your own functions as providers, as long as those functions return
 strings (or nil).
 
-### Using Presets
-
-The `setup` function also accepts a string as its argument, interpreting it as
-the name of a preset. Presets are buitin configurations that combine the
-available providers to create some specific style. They are defined in
-[`presets.lua`](./lua/plainline/presets.lua); emacs users might want to check
-out the `emacs` preset, which emulates the look of the stock emacs modeline.
-
 ### Default Configuration
 
 ```lua
 require("plainline").setup {
   sections = {
-    left  = { "mode", "branch", "name", "diagnostics" },
-    right = { "macro", "filetype", "fileformat", "percentage", "position" },
+    left  = {
+      "mode",
+      "tabpage",
+      "branch",
+      "name",
+      "diagnostics",
+    },
+    right = {
+      "macro",
+      "filetype",
+      "fileformat",
+      "percentage",
+      "position",
+    },
   },
   inactive_sections = {
     left  = { "path" },
     right = { "percentage" },
   },
-  separator = " │ ",
-  formatter = function (component)
-    return string.format(" %s ", component)
+  separator = "│",
+  formatter = function(component)
+    return string.format(' %s ', component)
   end,
-  winbar = nil -- no winbar by default
+  winbar = nil, -- no winbar by default
 }
 ```
 
@@ -78,13 +82,7 @@ the font is Inconsolata LGC. I would recommend using a theme that, like onedark,
 gives proper contrast to the statusline in relation to the background, as this
 greatly improves readability.
 
-### Default Configuration
-
-![plainline-default](/static/plainline-default.png?raw=true "Default configuration")
-
-### Emacs Preset
-
-![plainline-emacs](/static/plainline-emacs.png?raw=true "Emacs preset")
+![screenshot](/static/screenshot.png?raw=true)
 
 ## License
 

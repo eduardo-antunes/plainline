@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]--
 
+local fmt = string.format
+
 -- Lookup table for mode indentifiers
 local mode_id = {
   ["n" ] = "N"  , ["no"] = "N"  , ["nt"] = "N"  ,
@@ -45,43 +47,39 @@ local function clean(name)
   return name
 end
 
-local this = {}
+--------------------------------------------------------------------------------
+
+local M = {}
 
 -- Shows the current mode
-function this.mode()
+function M.mode()
   local current = vim.api.nvim_get_mode().mode
-  return string.format("<%s>", mode_id[current])
+  return fmt("<%s>", mode_id[current])
 end
 
 -- Shows the current tab number, if there are more tabs open
-function this.tabpage()
+function M.tabpage()
   if vim.fn.tabpagenr("$") > 1 then
     local t = vim.api.nvim_tabpage_get_number(0)
-    return string.format("T%d", t)
+    return fmt("T%d", t)
   end
 end
 
 -- Shows the current git branch
-function this.branch()
+function M.branch()
   if vim.b.plainline_branch then
-    return string.format("git-%s", vim.b.plainline_branch)
+    return fmt("git-%s", vim.b.plainline_branch)
   end
 end
 
--- Shows the name of the buffer and its status
-function this.name()
-  local name = clean(vim.fn.expand "%:.")
-  if name == "" then return nil end
-  local status = this.status()
-  if status then
-    name = string.format("%s %s", name, status)
-  end
-  return name
+-- Shows clean buffer name
+function M.name_only()
+  return clean(vim.fn.expand "%:.")
 end
 
--- Shows the buffer status in a very particular way: '*' for modified buffers
--- and '#' for read-only ones, instead of the traditional '[+]' and '[-]'
-function this.status()
+-- Shows buffer status in the plainline style:
+-- '*' for modified buffers, '#' for read-only ones
+function M.status()
   if not vim.bo.modifiable or vim.bo.readonly then
     return "#"
   elseif vim.bo.modified then
@@ -89,106 +87,73 @@ function this.status()
   end
 end
 
--- Shows diagnostics for the current buffer
-function this.diagnostics()
+-- Shows name_only + status
+function M.name()
+  local name = M.name_only()
+  if name == "" then return nil end
+  local status = M.status()
+  if status then
+    name = fmt("%s %s", name, status)
+  end
+  return name
+end
+
+-- Shows diagnostics for buffer
+function M.diagnostics()
   local diag = {}
-  local error = #vim.diagnostic.get(0, { severity = 1 })
-  local warns = #vim.diagnostic.get(0, { severity = 2 })
-  local infos = #vim.diagnostic.get(0, { severity = 3 })
-  local hints = #vim.diagnostic.get(0, { severity = 4 })
-  if error > 0 then table.insert(diag, string.format("E:%d", error)) end
-  if warns > 0 then table.insert(diag, string.format("W:%d", warns)) end
-  if infos > 0 then table.insert(diag, string.format("I:%d", infos)) end
-  if hints > 0 then table.insert(diag, string.format("H:%d", hints)) end
+  local sev = { "E", "W", "I", "H" }
+  local count = vim.diagnostic.count(0)
+  for i = 1, #sev do
+    if not count[i] then goto continue end
+    table.insert(diag, fmt("%s:%s", sev[i], count[i]))
+    ::continue::
+  end
   return table.concat(diag, " ")
 end
 
--- Shows the full path of the buffer, along with its status
-function this.path()
-  local path = clean(vim.fn.expand "%:p")
+-- Shows clean full path of buffer
+function M.path_only()
+  return clean(vim.fn.expand "%:p")
+end
+
+-- Shows path_only + status
+function M.path()
+  local path = M.path_only()
   if path == "" then return nil end
-  local status = this.status()
+  local status = M.status()
   if status then
-    path = string.format("%s %s", path, status)
+    path = fmt("%s %s", path, status)
   end
   return path
 end
 
--- Shows the name of the macro being recorded, if there is one
-function this.macro()
+-- Shows name of the macro being recorded
+function M.macro()
   local name = vim.fn.reg_recording()
   if name == "" then return nil end -- not recording
-  return string.format("@%s", name)
+  return fmt("@%s", name)
 end
 
--- Shows the filetype of the buffer
-function this.filetype()
+-- Shows buffer filetype
+function M.filetype()
   return vim.bo.filetype
 end
 
--- Shows the fileformat of the buffer, unless it's unix
-function this.fileformat()
+-- Shows fileformat of the buffer, unless it's unix
+function M.fileformat()
   local fmt = vim.bo.fileformat
   if fmt == "unix" then return nil end
   return fmt
 end
 
--- Shows the percentage of the buffer that has been scrolled down
-function this.percentage()
+-- Shows percentage of the buffer that has been scrolled down
+function M.percentage()
   return "%p%%"
 end
 
--- Shows the position in the buffer, using virtual column count
-function this.position()
+-- Shows position in the buffer, using virtual column count
+function M.position()
   return "%l:%v"
 end
 
--- Shows the buffer status, emacs-style
-function this.emacs_status()
-  local type = vim.bo.binary and "=" or "-"
-  local fmt_id = { unix = ":", dos = "\\", mac = "/" }
-  local status = "--"
-  if not vim.bo.modifiable or vim.bo.readonly then
-    status = "%%%%"
-  elseif vim.bo.modified then
-    status = "**"
-  end
-  local fmt = fmt_id[vim.bo.fileformat]
-  return string.format("%s%s%s-", type, fmt, status)
-end
-
--- Shows just the name of the buffer, without the status
-function this.emacs_name()
-  return clean(vim.fn.expand "%:.")
-end
-
--- Shows the percentage, emacs style
-function this.emacs_percentage()
-  return "%P"
-end
-
--- Shows the position in the buffer, emacs style (column-number-mode)
-function this.emacs_position()
-  return "(%l,%v)"
-end
-
--- Shows the current git branch, emacs style
-function this.emacs_branch()
-  if vim.b.plainline_branch then
-    return string.format("Git:%s", vim.b.plainline_branch)
-  end
-end
-
--- Shows an emacs mode indicator
-function this.emacs_mode()
-  local mode
-  if vim.fn.expand("%"):match("^term//.*$") then
-    mode = "Vterm"
-  else
-    mode = vim.bo.filetype:gsub("^%l", string.upper)
-    if mode == "" then mode = "Fundamental" end
-  end
-  return string.format("(%s)", mode)
-end
-
-return this
+return M
