@@ -92,7 +92,7 @@ local function set_winbar(mode)
   vim.wo.winbar = expr
 end
 
-local function autocmd_setup_status(group)
+local function autocmd_setup_status_local(group)
   vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
     callback = function() set_status("on") end,
     group = group,
@@ -100,6 +100,16 @@ local function autocmd_setup_status(group)
   vim.api.nvim_create_autocmd({ "WinLeave", "BufLeave" }, {
     callback = function() set_status("off") end,
     group = group,
+  })
+end
+
+local function autocmd_setup_status_global(group)
+  vim.go.statusline = "%{%v:lua.require'plainline.core'.status_on()%}"
+  -- Tragically, quickfix tries to set its own statusline.
+  -- See: https://github.com/neovim/neovim/issues/27731
+  vim.api.nvim_create_autocmd("FileType", {
+    pattern = "qf", group = group,
+    callback = function() vim.wo.statusline = "" end
   })
 end
 
@@ -126,7 +136,11 @@ function M.enable(config)
   local off = get_ptable(config.inactive_sections)
   M.status_on  = function() return mkstatus(on, config) end
   M.status_off = function() return mkstatus(off, config) end
-  autocmd_setup_status(plainline_group)
+
+  if vim.o.laststatus == 3 then
+    autocmd_setup_status_global(plainline_group)
+  else autocmd_setup_status_local(plainline_group)
+  end
 
     -- Winbar functions for active and inactive states, respectively
   if config.winbar then
