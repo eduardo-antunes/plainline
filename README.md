@@ -65,7 +65,14 @@ long as they return strings (or nil).
 
 The `name_only` and `path_only` providers apply a cleaning function to their
 respective pieces of information. The idea behind that is to reduce visual
-noise, improving clarity.
+noise, improving clarity. This cleaning function does the following:
+
+* For terminal buffers, displays their title (`vim.b.term_title`) rather than
+  their name;
+* Removes protocol style prefixes (`protocol://<actual-name>`);
+* Replaces the home directory with `~`;
+* Shows just the filename for builtin vim help and manpages;
+* For `vim-fugitive` buffers, shows just the name of the repository.
 
 ### Default Configuration
 
