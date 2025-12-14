@@ -40,6 +40,7 @@ local default_config = {
     return string.format(" %s ", str)
   end,
   winbar = nil, -- no winbar by default
+  name_filters = { "clean" },
 }
 
 local M = {}

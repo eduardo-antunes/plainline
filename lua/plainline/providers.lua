@@ -15,50 +15,27 @@ limitations under the License.
 ]]--
 
 local fmt = string.format
+local filters = require("plainline.filters")
 
--- Lookup table for mode indentifiers
-local mode_id = {
-  ["n" ] = "N"  , ["no"] = "N"  , ["nt"] = "N"  ,
-  ["v" ] = "V"  , ["V" ] = "VL" , [""] = "VB" ,
-  ["s" ] = "S"  , ["S" ] = "SL" , [""] = "SB" ,
-  ["i" ] = "I"  , ["ic"] = "I"  , ["R" ] = "R"  ,
-  ["Rv"] = "Vr" , ["c" ] = "C"  , ["cv"] = "EX" ,
-  ["ce"] = "EX" , ["r" ] = "P"  , ["rm"] = "M"  ,
-  ["r?"] = "?"  , ["!" ] = "$"  , ["t" ] = "T"  ,
-}
-
--- Cleans up buffer names and paths before they get shown, reducing noise
-local function clean(name)
-  -- For terminal buffers, display their title
-  if name:match("^term://.*$") then
-    return vim.b.term_title
-  end
-  -- Remove protocol-style prefixes and substitute $HOME for '~'
-  name = name:gsub("^.*://(.*)$", "%1")
-  name = name:gsub(vim.fn.getenv("HOME"), "~")
-
-  if vim.bo.filetype == "help" or vim.bo.filetype == "man" then
-    -- I don't care about the path of help pages, just the topic
-    name = vim.fn.fnamemodify(name, ":t")
-  elseif vim.bo.filetype == "fugitive" then
-    -- For fugitive: show just the name of the repository
-    name = name:gsub("^.*/(.*)/%.git.*$", "%1.git")
-  end
-  return name
-end
-
---------------------------------------------------------------------------------
-
-local M = {}
+local P = {}
 
 -- Shows the current mode
-function M.mode()
+function P.mode()
+  local mode_id = {
+    ["n" ] = "N"  , ["no"] = "N"  , ["nt"] = "N"  ,
+    ["v" ] = "V"  , ["V" ] = "VL" , [""] = "VB" ,
+    ["s" ] = "S"  , ["S" ] = "SL" , [""] = "SB" ,
+    ["i" ] = "I"  , ["ic"] = "I"  , ["R" ] = "R"  ,
+    ["Rv"] = "RV" , ["c" ] = "C"  , ["cv"] = "EX" ,
+    ["ce"] = "EX" , ["r" ] = "P"  , ["rm"] = "M"  ,
+    ["r?"] = "?"  , ["!" ] = "$"  , ["t" ] = "T"  ,
+  }
   local current = vim.api.nvim_get_mode().mode
-  return fmt("<%s>", mode_id[current])
+  return fmt("<%s>", mode_id[current] or "_")
 end
 
 -- Shows the current tab number, if there are more tabs open
-function M.tabpage()
+function P.tabpage()
   if vim.fn.tabpagenr("$") > 1 then
     local t = vim.api.nvim_tabpage_get_number(0)
     return fmt("T%d", t)
@@ -66,20 +43,21 @@ function M.tabpage()
 end
 
 -- Shows the current git branch
-function M.branch()
+function P.branch()
   if vim.b.plainline_branch then
     return fmt("git-%s", vim.b.plainline_branch)
   end
 end
 
--- Shows clean buffer name
-function M.name_only()
-  return clean(vim.fn.expand "%:.")
+-- Shows buffer name with filters applied
+function P.name_only()
+  local name = vim.fn.expand "%:."
+  return filters.apply(P.name_filters, name)
 end
 
 -- Shows buffer status in the plainline style:
 -- '*' for modified buffers, '#' for read-only ones
-function M.status()
+function P.status()
   if not vim.bo.modifiable or vim.bo.readonly then
     return "#"
   elseif vim.bo.modified then
@@ -88,10 +66,10 @@ function M.status()
 end
 
 -- Shows name_only + status
-function M.name()
-  local name = M.name_only()
+function P.name()
+  local name = P.name_only()
   if name == "" then return nil end
-  local status = M.status()
+  local status = P.status()
   if status then
     name = fmt("%s %s", name, status)
   end
@@ -99,7 +77,7 @@ function M.name()
 end
 
 -- Shows diagnostics for buffer
-function M.diagnostics()
+function P.diagnostics()
   local diag = {}
   local sev = { "E", "W", "I", "H" }
   local count = vim.diagnostic.count(0)
@@ -112,15 +90,16 @@ function M.diagnostics()
 end
 
 -- Shows clean full path of buffer
-function M.path_only()
-  return clean(vim.fn.expand "%:p")
+function P.path_only()
+  local path = vim.fn.expand "%:p"
+  return filters.apply(P.name_filters, path)
 end
 
 -- Shows path_only + status
-function M.path()
-  local path = M.path_only()
+function P.path()
+  local path = P.path_only()
   if path == "" then return nil end
-  local status = M.status()
+  local status = P.status()
   if status then
     path = fmt("%s %s", path, status)
   end
@@ -128,32 +107,41 @@ function M.path()
 end
 
 -- Shows name of the macro being recorded
-function M.macro()
+function P.macro()
   local name = vim.fn.reg_recording()
   if name == "" then return nil end -- not recording
   return fmt("@%s", name)
 end
 
 -- Shows buffer filetype
-function M.filetype()
+function P.filetype()
   return vim.bo.filetype
 end
 
 -- Shows fileformat of the buffer, unless it's unix
-function M.fileformat()
+function P.fileformat()
   local fmt = vim.bo.fileformat
   if fmt == "unix" then return nil end
   return fmt
 end
 
 -- Shows percentage of the buffer that has been scrolled down
-function M.percentage()
+function P.percentage()
   return "%p%%"
 end
 
 -- Shows position in the buffer, using virtual column count
-function M.position()
+function P.position()
   return "%l:%v"
+end
+
+--------------------------------------------------------------------------------
+
+local M = {}
+
+function M.with_filters(name_filters)
+  P.name_filters = name_filters
+  return P
 end
 
 return M

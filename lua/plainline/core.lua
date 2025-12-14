@@ -20,9 +20,9 @@ local fmt = string.format
 -- Takes a provider specification (as given by the sections and inactive
 -- sections keys of the config) and returns a table of similar structure,
 -- but with concrete functions as its elements
-local function get_ptable(sections)
+local function get_ptable(sections, filters)
   local ptable = { left = {}, right = {} }
-  local builtin = require("plainline.providers")
+  local builtin = require("plainline.providers").with_filters(filters)
   for s, providers in pairs(sections) do
     for _, provider in ipairs(providers) do
       if type(provider) == "string" then
@@ -132,8 +132,8 @@ function M.enable(config)
   local plainline_group = vim.api.nvim_create_augroup("plainline", {})
 
   -- Statusline functions for active and inactive states, respectively
-  local on = get_ptable(config.sections)
-  local off = get_ptable(config.inactive_sections)
+  local on = get_ptable(config.sections, config.name_filters)
+  local off = get_ptable(config.inactive_sections, config.name_filters)
   M.status_on  = function() return mkstatus(on, config) end
   M.status_off = function() return mkstatus(off, config) end
 
