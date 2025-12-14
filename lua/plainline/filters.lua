@@ -14,30 +14,42 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]--
 
+local M = {}
 local F = {}
 
-function F.clean(name)
-  -- For terminal buffers, display their title
-  if name:match("^term://.*$") then
-    return vim.b.term_title
-  end
-  -- Remove protocol-style prefixes and substitute $HOME for '~'
-  name = name:gsub("^.*://(.*)$", "%1")
-  name = name:gsub(vim.fn.getenv("HOME"), "~")
-
-  if vim.bo.filetype == "help" or vim.bo.filetype == "man" then
-    -- I don't care about the path of help pages, just the topic
-    name = vim.fn.fnamemodify(name, ":t")
-  elseif vim.bo.filetype == "fugitive" then
-    -- For fugitive: show just the name of the repository
-    name = name:gsub("^.*/(.*)/%.git.*$", "%1.git")
-  end
-  return name
+function F.show_term_title(name)
+  if not name:match("^term://.*$") then return name end
+  return vim.b.term_title, true
 end
 
---------------------------------------------------------------------------------
+function F.remove_protocol_prefix(name)
+  return name:gsub("^.*://(.*)$", "%1")
+end
 
-local M = {}
+function F.abbrev_home_dir(name)
+  return name:gsub(vim.fn.getenv "HOME", "~")
+end
+
+function F.show_help_topic(name)
+  if vim.bo.filetype ~= "help" and vim.bo.filetype ~= "man" then return name end
+  return vim.fn.fnamemodify(name, ":t")
+end
+
+function F.show_repo_name(name)
+  if vim.bo.filetype ~= "fugitive" then return name end
+  return name:gsub("^.*/(.*)/%.git.*$", "%1.git")
+end
+
+function F.clean(name)
+  local clean_filters = {
+    "show_term_title",
+    "remove_protocol_prefix",
+    "abbrev_home_dir",
+    "show_help_topic",
+    "show_repo_name",
+  }
+  return M.apply(clean_filters, name)
+end
 
 function M.apply(filters, name)
   for _, name_filter in ipairs(filters) do
@@ -49,9 +61,10 @@ function M.apply(filters, name)
       filter_fn = F[name_filter]
       if not filter_fn then goto continue end
     end
-    local ok, filtered_name = pcall(filter_fn, name)
+    local ok, filtered_name, stop = pcall(filter_fn, name)
     if not ok then goto continue end
     name = filtered_name
+    if stop then break end
     ::continue::
   end
   return name
