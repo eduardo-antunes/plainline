@@ -24,16 +24,18 @@ manager).
 ## Configuration
 
 You may configure plainline by providing a configuration table to the `setup`
-function. This table can contain any or all of five keys:
+function. This table can contain any or all of six keys:
 
 - `sections` defines the active statusline;
 - `inactive_sections` defines the inactive statusline;
 - `separator` sets the text that is shown between the outputs of providers;
 - `formatter` is a function that is run on the result of each provider before
   it gets displayed. By default, surrounds it with spaces;
+- `name_filters` defines the filtering functions that will be applied to buffer
+  names before display;
 - `winbar` should be nil or a table with the `sections` and `inactive_sections`
   keys, which define the active and inactive winbar, respectively. Mostly
-  useful with a global statusline (`laststatus` set to 3).
+  useful with a global statusline (`laststatus` set to 3);
 
 ### Sections, inactive sections and providers
 
@@ -44,18 +46,18 @@ respectively. Each of these keys should be a list of providers.
 
 A provider is simply a function that fetches a particular piece of information
 and returns it as nicely formatted text. They are the building blocks of
-plainline. The builtin providers, which are listed below, may be specified by
+plainline. The built-in providers, which are listed below, may be specified by
 name (i.e. as strings). You can also pass your own functions as providers, as
 long as they return strings (or nil).
 
 * `mode`: current mode;
 * `tabpage`: current tab page number;
 * `branch`: current git branch, if in a git repository;
-* `name_only`: just the clean buffer name;
+* `name_only`: just the filtered buffer name;
 * `status`: buffer status. `*` for modified and `#` for read-only;
 * `name`: `name_only` + `status` in the same provider;
 * `diagnostics`: diagnostics, of course;
-* `path_only`: just the clean, absolute filepath of the current buffer;
+* `path_only`: just the filtered absolute filepath of the current buffer;
 * `path`: `path_only` + `status` in the same provider;
 * `macro`: name of macro being recorded, if any;
 * `filetype`: filetype for the current buffer;
@@ -63,16 +65,28 @@ long as they return strings (or nil).
 * `percentage`: percentage of the buffer that has been scrolled down;
 * `position`: position of the cursor within the buffer.
 
-The `name_only` and `path_only` providers apply a cleaning function to their
-respective pieces of information. The idea behind that is to reduce visual
-noise, improving clarity. This cleaning function does the following:
+### Filtering
+
+The `name_only` and `path_only` providers apply a series of filtering functions
+to their respective outputs. These filtering functions are specified via the
+`name_filters` key in the config. Similar to providers, built-in name filters
+may be specified by name (i.e. as strings), and you may also pass your own
+functions as filters. Such functions should receive and return a string. Filters
+are applied in the order that they are specified.
+
+There is just one built-in name filter, `clean`, which is applied by default.
+The idea behind it is to remove noise from buffer names, improving clarity. In
+more concrete terms, it does the following:
 
 * For terminal buffers, displays their title (`vim.b.term_title`) rather than
   their name;
 * Removes protocol style prefixes (`protocol://<actual-name>`);
 * Replaces the home directory with `~`;
-* Shows just the filename for builtin vim help and manpages;
+* Shows just the filename for built-in vim help and manpages;
 * For `vim-fugitive` buffers, shows just the name of the repository.
+
+Disabling this cleaning routine is as easy as providing an empty table to
+`name_filters`, though its usage is very much recommended.
 
 ### Default Configuration
 
@@ -102,6 +116,7 @@ require("plainline").setup {
   formatter = function(str)
     return string.format(" %s ", str)
   end,
+  name_filters = { "clean" },
   winbar = nil, -- no winbar by default
 }
 ```
@@ -112,10 +127,7 @@ require("plainline").setup {
 
 The above screenshot showcases the default configuration with both the
 `sections` and `inactive_sections` keys of the `winbar`option set to `{ right =
-{ "status", "name_only" }}` and `laststatus` set to 2 (the default). The theme
-used is [`accent.nvim`](https://github.com/eduardo-antunes/accent.nvim) with the
-accent color set to green and the `invert_status` option enabled. The font is
-Hack.
+{ "status", "name_only" }}` and `laststatus` set to 2 (the default).
 
 ## License
 
