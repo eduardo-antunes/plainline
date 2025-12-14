@@ -70,23 +70,25 @@ long as they return strings (or nil).
 The `name_only` and `path_only` providers apply a series of filtering functions
 to their respective outputs. These filtering functions are specified via the
 `name_filters` key in the config. Similar to providers, built-in name filters
-may be specified by name (i.e. as strings), and you may also pass your own
-functions as filters. Such functions should receive and return a string. Filters
-are applied in the order that they are specified.
+may be specified by name (i.e. as strings).
 
-There is just one built-in name filter, `clean`, which is applied by default.
-The idea behind it is to remove noise from buffer names, improving clarity. In
-more concrete terms, it does the following:
+You may also pass your own functions as filters. Such functions should receive
+and return a string. If they return an additional value and it is truthy (i.e
+not `nil` or `false`), this causes all following filters to not be run, which
+may be useful in some contexts.
 
-* For terminal buffers, displays their title (`vim.b.term_title`) rather than
-  their name;
-* Removes protocol style prefixes (`protocol://<actual-name>`);
-* Replaces the home directory with `~`;
-* Shows just the filename for built-in vim help and manpages;
-* For `vim-fugitive` buffers, shows just the name of the repository.
+The built-in filters are listed below.
 
-Disabling this cleaning routine is as easy as providing an empty table to
-`name_filters`, though its usage is very much recommended.
+* `show_term_title`: replaces the buffer name of terminal buffers with their
+  title (`vim.b.term_title`);
+* `remove_protocol_prefix`: removes protocol style prefixes
+  (`protocol://<actual-name>` -> `<actual-name>`);
+* `abbrev_home_dir`: replaces the full path of the home directory with `~`;
+* `show_help_topic`: shows just the filename (the "topic") for built-in vim help
+  and manpages;
+* `show_repo_name`: for `vim-fugitive` buffers, shows just the name of the
+  repository instead of its full path;
+* `clean`: applies all of the above, in that order.
 
 ### Default Configuration
 
