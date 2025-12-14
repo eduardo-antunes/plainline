@@ -39,8 +39,8 @@ local default_config = {
   formatter = function(str)
     return string.format(" %s ", str)
   end,
-  winbar = nil, -- no winbar by default
   name_filters = { "clean" },
+  winbar = nil, -- no winbar by default
 }
 
 local M = {}

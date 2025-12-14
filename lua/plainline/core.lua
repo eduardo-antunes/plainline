@@ -144,8 +144,14 @@ function M.enable(config)
 
     -- Winbar functions for active and inactive states, respectively
   if config.winbar then
-    local winbar_on = get_ptable(config.winbar.sections or {})
-    local winbar_off = get_ptable(config.winbar.inactive_sections or {})
+    local winbar_on = get_ptable(
+      config.winbar.sections or {},
+      config.name_filters
+    )
+    local winbar_off = get_ptable(
+      config.winbar.inactive_sections or {},
+      config.name_filters
+    )
     M.winbar_on  = function() return mkstatus(winbar_on, config) end
     M.winbar_off = function() return mkstatus(winbar_off, config) end
     autocmd_setup_winbar(plainline_group)
