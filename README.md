@@ -73,8 +73,8 @@ to their respective outputs. These filtering functions are specified via the
 may be specified by name (i.e. as strings).
 
 You may also pass your own functions as filters. Such functions should receive
-and return a string. If they return an additional value and it is truthy (i.e
-not `nil` or `false`), this causes all following filters to not be run, which
+and return a string. If they return an additional value and it is truthy (i.e.
+neither `nil` nor `false`), this causes all following filters to not be run, which
 may be useful in some contexts.
 
 The built-in filters are listed below.
