@@ -23,11 +23,11 @@ function F.show_term_title(name)
 end
 
 function F.remove_protocol_prefix(name)
-  return name:gsub("^.*://(.*)$", "%1")
+  local res = name:gsub("^.*://(.*)$", "%1"); return res
 end
 
 function F.abbrev_home_dir(name)
-  return name:gsub(vim.fn.getenv "HOME", "~")
+  local res = name:gsub(vim.fn.getenv "HOME", "~"); return res
 end
 
 function F.show_help_topic(name)
@@ -37,7 +37,7 @@ end
 
 function F.show_repo_name(name)
   if vim.bo.filetype ~= "fugitive" then return name end
-  return name:gsub("^.*/(.*)/%.git.*$", "%1.git")
+  local res = name:gsub("^.*/(.*)/%.git.*$", "%1.git"); return res
 end
 
 function F.clean(name)

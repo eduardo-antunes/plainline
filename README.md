@@ -74,8 +74,10 @@ may be specified by name (i.e. as strings).
 
 You may also pass your own functions as filters. Such functions should receive
 and return a string. If they return an additional value and it is truthy (i.e.
-neither `nil` nor `false`), this causes all following filters to not be run, which
-may be useful in some contexts.
+neither `nil` nor `false`), this causes all following filters to not be run,
+which may be useful in some contexts. It also means you have to take care with
+functions such as `string.gsub`, which return multiple values; instead of doing
+`return string.gsub(...)`, do `local res = string.gsub(...); return res`.
 
 The built-in filters are listed below.
 
