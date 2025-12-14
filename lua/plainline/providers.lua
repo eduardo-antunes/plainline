@@ -17,7 +17,12 @@ limitations under the License.
 local fmt = string.format
 local filters = require("plainline.filters")
 
+local M = {}
 local P = {}
+
+function M.set_filters(name_filters)
+  M.name_filters = name_filters
+end
 
 -- Shows the current mode
 function P.mode()
@@ -52,7 +57,7 @@ end
 -- Shows buffer name with filters applied
 function P.name_only()
   local name = vim.fn.expand "%:."
-  return filters.apply(P.name_filters, name)
+  return filters.apply(M.name_filters, name)
 end
 
 -- Shows buffer status in the plainline style:
@@ -92,7 +97,7 @@ end
 -- Shows clean full path of buffer
 function P.path_only()
   local path = vim.fn.expand "%:p"
-  return filters.apply(P.name_filters, path)
+  return filters.apply(M.name_filters, path)
 end
 
 -- Shows path_only + status
@@ -135,13 +140,5 @@ function P.position()
   return "%l:%v"
 end
 
---------------------------------------------------------------------------------
-
-local M = {}
-
-function M.with_filters(name_filters)
-  P.name_filters = name_filters
-  return P
-end
-
+M.providers = P
 return M

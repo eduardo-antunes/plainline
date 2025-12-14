@@ -22,7 +22,7 @@ local fmt = string.format
 -- but with concrete functions as its elements
 local function get_ptable(sections, filters)
   local ptable = { left = {}, right = {} }
-  local builtin = require("plainline.providers").with_filters(filters)
+  local builtin = require("plainline.providers").providers
   for s, providers in pairs(sections) do
     for _, provider in ipairs(providers) do
       if type(provider) == "string" then
@@ -130,10 +130,11 @@ end
 -- appropriate autocommands for the thing to work properly
 function M.enable(config)
   local plainline_group = vim.api.nvim_create_augroup("plainline", {})
+  require("plainline.providers").set_filters(config.name_filters)
 
   -- Statusline functions for active and inactive states, respectively
-  local on = get_ptable(config.sections, config.name_filters)
-  local off = get_ptable(config.inactive_sections, config.name_filters)
+  local on = get_ptable(config.sections)
+  local off = get_ptable(config.inactive_sections)
   M.status_on  = function() return mkstatus(on, config) end
   M.status_off = function() return mkstatus(off, config) end
 
@@ -144,14 +145,8 @@ function M.enable(config)
 
     -- Winbar functions for active and inactive states, respectively
   if config.winbar then
-    local winbar_on = get_ptable(
-      config.winbar.sections or {},
-      config.name_filters
-    )
-    local winbar_off = get_ptable(
-      config.winbar.inactive_sections or {},
-      config.name_filters
-    )
+    local winbar_on = get_ptable(config.winbar.sections or {})
+    local winbar_off = get_ptable(config.winbar.inactive_sections or {})
     M.winbar_on  = function() return mkstatus(winbar_on, config) end
     M.winbar_off = function() return mkstatus(winbar_off, config) end
     autocmd_setup_winbar(plainline_group)
