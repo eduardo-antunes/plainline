@@ -17,9 +17,7 @@ vim.pack.add { src = "https://github.com/eduardo-antunes/plainline" }
 require("plainline").setup()
 ```
 
-Note that neovim 0.10+ is required for the plugin, and that `vim.pack` is only
-available for neovim 0.12+ (for older versions, use a third-party plugin
-manager).
+Note that neovim 0.12+ is required for the plugin.
 
 ## Configuration
 
