@@ -83,15 +83,7 @@ end
 
 -- Shows diagnostics for buffer
 function P.diagnostics()
-  local diag = {}
-  local sev = { "E", "W", "I", "H" }
-  local count = vim.diagnostic.count(0)
-  for i = 1, #sev do
-    if not count[i] then goto continue end
-    table.insert(diag, fmt("%s:%s", sev[i], count[i]))
-    ::continue::
-  end
-  return table.concat(diag, " ")
+  return vim.diagnostic.status()
 end
 
 -- Shows clean full path of buffer
